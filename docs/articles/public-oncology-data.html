@@ -79,8 +79,7 @@ with treatment assignment and baseline covariates.</p>
 <h2 id="prepare-the-public-dataset">Prepare the public dataset<a class="anchor" aria-label="anchor" href="#prepare-the-public-dataset"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">cce</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">veteran</span>, package <span class="op">=</span> <span class="st">"survival"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in data(veteran, package = "survival"): data set 'veteran' not found</span></span>
@@ -99,11 +98,22 @@ with treatment assignment and baseline covariates.</p>
 <span><span class="co">#&gt; 4   1 squamous  126      1    60        9  63    10 SOC     1 squamous</span></span>
 <span><span class="co">#&gt; 5   1 squamous  118      1    70       11  65    10 SOC     1 squamous</span></span>
 <span><span class="co">#&gt; 6   1 squamous   10      1    20        5  49     0 SOC     1 squamous</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/profile_cce_dataset.html">profile_cce_dataset</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">veteran2</span>,</span>
+<span>  arm <span class="op">=</span> <span class="st">"arm"</span>,</span>
+<span>  time <span class="op">=</span> <span class="st">"time"</span>,</span>
+<span>  event <span class="op">=</span> <span class="st">"event"</span>,</span>
+<span>  subgroup <span class="op">=</span> <span class="st">"subgroup"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; CCE dataset profile</span></span>
+<span><span class="co">#&gt;     n events event_rate median_follow_up max_follow_up</span></span>
+<span><span class="co">#&gt; 1 137    128  0.9343066               80           999</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-a-vs-comparison">Fit a VS comparison<a class="anchor" aria-label="anchor" href="#fit-a-vs-comparison"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vs_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_cce_vs.html">fit_cce_vs</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">veteran2</span>,</span>
 <span>  arm <span class="op">=</span> <span class="st">"arm"</span>,</span>
@@ -120,61 +130,61 @@ with treatment assignment and baseline covariates.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">vs_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; CCE VS result</span></span>
 <span><span class="co">#&gt; Label: ok </span></span>
-<span><span class="co">#&gt; Warnings: Residual covariate imbalance detected. | g-formula and IPTW disagree on the RMST direction. </span></span>
+<span><span class="co">#&gt; Warnings: Residual covariate imbalance detected. </span></span>
 <span><span class="co">#&gt;   mode   method subgroup tau rmst_arm0 rmst_arm1    delta_rmst landmark_time</span></span>
-<span><span class="co">#&gt; 1   vs gformula      All 180 17.423484 13.708854 -3.7146293600            90</span></span>
-<span><span class="co">#&gt; 2   vs gformula      All 180 17.423484 13.708854 -3.7146293600           180</span></span>
-<span><span class="co">#&gt; 3   vs     iptw      All 180 88.513868 88.517794  0.0039259530            90</span></span>
-<span><span class="co">#&gt; 4   vs     iptw      All 180 88.513868 88.517794  0.0039259530           180</span></span>
-<span><span class="co">#&gt; 5   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898            90</span></span>
-<span><span class="co">#&gt; 6   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898           180</span></span>
+<span><span class="co">#&gt; 1   vs gformula      All 180  17.42348  13.70885  -3.714629360            90</span></span>
+<span><span class="co">#&gt; 2   vs gformula      All 180  17.42348  13.70885  -3.714629360           180</span></span>
+<span><span class="co">#&gt; 3   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041            90</span></span>
+<span><span class="co">#&gt; 4   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041           180</span></span>
+<span><span class="co">#&gt; 5   vs iptw_cox      All 180  88.51387  88.51779   0.003925953            90</span></span>
+<span><span class="co">#&gt; 6   vs iptw_cox      All 180  88.51387  88.51779   0.003925953           180</span></span>
 <span><span class="co">#&gt;   survival_arm0 survival_arm1 delta_survival delta_rmst_lower_ci</span></span>
-<span><span class="co">#&gt; 1  2.284475e-02  1.062429e-02  -1.222046e-02          -9.1317452</span></span>
-<span><span class="co">#&gt; 2  1.166565e-03  2.869724e-04  -8.795925e-04          -9.1317452</span></span>
-<span><span class="co">#&gt; 3  4.753097e-01  4.753350e-01   2.531322e-05         -11.0828252</span></span>
-<span><span class="co">#&gt; 4  2.121428e-01  2.121664e-01   2.355226e-05         -11.0828252</span></span>
-<span><span class="co">#&gt; 5 2.693089e-210 2.900255e-222 -2.693089e-210          -0.8764966</span></span>
-<span><span class="co">#&gt; 6  0.000000e+00  0.000000e+00   0.000000e+00          -0.8764966</span></span>
+<span><span class="co">#&gt; 1   0.022844751  0.0106242942  -1.222046e-02           -9.131745</span></span>
+<span><span class="co">#&gt; 2   0.001166565  0.0002869724  -8.795925e-04           -9.131745</span></span>
+<span><span class="co">#&gt; 3   0.544475074  0.4012334748  -1.432416e-01          -30.010487</span></span>
+<span><span class="co">#&gt; 4   0.191913854  0.2287792627   3.686541e-02          -30.010487</span></span>
+<span><span class="co">#&gt; 5   0.475309651  0.4753349641   2.531322e-05          -11.082825</span></span>
+<span><span class="co">#&gt; 6   0.212142801  0.2121663536   2.355226e-05          -11.082825</span></span>
 <span><span class="co">#&gt;   delta_rmst_upper_ci delta_survival_lower_ci delta_survival_upper_ci</span></span>
-<span><span class="co">#&gt; 1         -0.98454187           -3.990590e-02           -1.360854e-04</span></span>
-<span><span class="co">#&gt; 2         -0.98454187           -2.462785e-02           -1.241037e-09</span></span>
-<span><span class="co">#&gt; 3          7.69667224           -7.205622e-02            4.926232e-02</span></span>
-<span><span class="co">#&gt; 4          7.69667224           -6.251200e-02            4.403169e-02</span></span>
-<span><span class="co">#&gt; 5          0.03391937           -9.203209e-22            1.794115e-24</span></span>
-<span><span class="co">#&gt; 6          0.03391937          -5.377227e-151           2.166097e-208</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">vs_fit</span>, method <span class="op">=</span> <span class="st">"iptw"</span>, subgroup <span class="op">=</span> <span class="st">"All"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="public-oncology-data_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="672"></p>
+<span><span class="co">#&gt; 1          -0.9845419            -0.039905898           -1.360854e-04</span></span>
+<span><span class="co">#&gt; 2          -0.9845419            -0.024627849           -1.241037e-09</span></span>
+<span><span class="co">#&gt; 3          -4.4122734            -0.272187557           -7.639318e-02</span></span>
+<span><span class="co">#&gt; 4          -4.4122734            -0.006723102            9.796009e-02</span></span>
+<span><span class="co">#&gt; 5           7.6966722            -0.072056221            4.926232e-02</span></span>
+<span><span class="co">#&gt; 6           7.6966722            -0.062511997            4.403169e-02</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">vs_fit</span>, method <span class="op">=</span> <span class="st">"iptw_km"</span>, subgroup <span class="op">=</span> <span class="st">"All"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="public-oncology-data_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="672"></p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_effects_df.html">as_effects_df</a></span><span class="op">(</span><span class="va">vs_fit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   mode   method subgroup tau rmst_arm0 rmst_arm1    delta_rmst landmark_time</span></span>
-<span><span class="co">#&gt; 1   vs gformula      All 180 17.423484 13.708854 -3.7146293600            90</span></span>
-<span><span class="co">#&gt; 2   vs gformula      All 180 17.423484 13.708854 -3.7146293600           180</span></span>
-<span><span class="co">#&gt; 3   vs     iptw      All 180 88.513868 88.517794  0.0039259530            90</span></span>
-<span><span class="co">#&gt; 4   vs     iptw      All 180 88.513868 88.517794  0.0039259530           180</span></span>
-<span><span class="co">#&gt; 5   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898            90</span></span>
-<span><span class="co">#&gt; 6   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898           180</span></span>
+<span><span class="co">#&gt; 1   vs gformula      All 180  17.42348  13.70885  -3.714629360            90</span></span>
+<span><span class="co">#&gt; 2   vs gformula      All 180  17.42348  13.70885  -3.714629360           180</span></span>
+<span><span class="co">#&gt; 3   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041            90</span></span>
+<span><span class="co">#&gt; 4   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041           180</span></span>
+<span><span class="co">#&gt; 5   vs iptw_cox      All 180  88.51387  88.51779   0.003925953            90</span></span>
+<span><span class="co">#&gt; 6   vs iptw_cox      All 180  88.51387  88.51779   0.003925953           180</span></span>
 <span><span class="co">#&gt;   survival_arm0 survival_arm1 delta_survival delta_rmst_lower_ci</span></span>
-<span><span class="co">#&gt; 1  2.284475e-02  1.062429e-02  -1.222046e-02          -9.1317452</span></span>
-<span><span class="co">#&gt; 2  1.166565e-03  2.869724e-04  -8.795925e-04          -9.1317452</span></span>
-<span><span class="co">#&gt; 3  4.753097e-01  4.753350e-01   2.531322e-05         -11.0828252</span></span>
-<span><span class="co">#&gt; 4  2.121428e-01  2.121664e-01   2.355226e-05         -11.0828252</span></span>
-<span><span class="co">#&gt; 5 2.693089e-210 2.900255e-222 -2.693089e-210          -0.8764966</span></span>
-<span><span class="co">#&gt; 6  0.000000e+00  0.000000e+00   0.000000e+00          -0.8764966</span></span>
+<span><span class="co">#&gt; 1   0.022844751  0.0106242942  -1.222046e-02           -9.131745</span></span>
+<span><span class="co">#&gt; 2   0.001166565  0.0002869724  -8.795925e-04           -9.131745</span></span>
+<span><span class="co">#&gt; 3   0.544475074  0.4012334748  -1.432416e-01          -30.010487</span></span>
+<span><span class="co">#&gt; 4   0.191913854  0.2287792627   3.686541e-02          -30.010487</span></span>
+<span><span class="co">#&gt; 5   0.475309651  0.4753349641   2.531322e-05          -11.082825</span></span>
+<span><span class="co">#&gt; 6   0.212142801  0.2121663536   2.355226e-05          -11.082825</span></span>
 <span><span class="co">#&gt;   delta_rmst_upper_ci delta_survival_lower_ci delta_survival_upper_ci</span></span>
-<span><span class="co">#&gt; 1         -0.98454187           -3.990590e-02           -1.360854e-04</span></span>
-<span><span class="co">#&gt; 2         -0.98454187           -2.462785e-02           -1.241037e-09</span></span>
-<span><span class="co">#&gt; 3          7.69667224           -7.205622e-02            4.926232e-02</span></span>
-<span><span class="co">#&gt; 4          7.69667224           -6.251200e-02            4.403169e-02</span></span>
-<span><span class="co">#&gt; 5          0.03391937           -9.203209e-22            1.794115e-24</span></span>
-<span><span class="co">#&gt; 6          0.03391937          -5.377227e-151           2.166097e-208</span></span></code></pre></div>
+<span><span class="co">#&gt; 1          -0.9845419            -0.039905898           -1.360854e-04</span></span>
+<span><span class="co">#&gt; 2          -0.9845419            -0.024627849           -1.241037e-09</span></span>
+<span><span class="co">#&gt; 3          -4.4122734            -0.272187557           -7.639318e-02</span></span>
+<span><span class="co">#&gt; 4          -4.4122734            -0.006723102            9.796009e-02</span></span>
+<span><span class="co">#&gt; 5           7.6966722            -0.072056221            4.926232e-02</span></span>
+<span><span class="co">#&gt; 6           7.6966722            -0.062511997            4.403169e-02</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="create-an-soc-only-projection">Create an SOC-only projection<a class="anchor" aria-label="anchor" href="#create-an-soc-only-projection"></a>
 </h2>
 <p>For scenario planning, we can keep only the SOC rows and overlay
 assumption-based proportional-hazards projections.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">soc_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/project_soc_only.html">project_soc_only</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">veteran2</span>,</span>
 <span>  arm <span class="op">=</span> <span class="st">"arm"</span>,</span>
@@ -222,16 +232,17 @@ assumption-based proportional-hazards projections.</p>
 <span><span class="co">#&gt; 4              0.03010239              0.03781181</span></span>
 <span><span class="co">#&gt; 5              0.00000000              0.00000000</span></span>
 <span><span class="co">#&gt; 6              0.00000000              0.00000000</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">soc_fit</span>, subgroup <span class="op">=</span> <span class="st">"All"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="public-oncology-data_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="672"></p>
+<p><img src="public-oncology-data_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="interpretation-notes">Interpretation notes<a class="anchor" aria-label="anchor" href="#interpretation-notes"></a>
 </h2>
 <ul>
-<li>VS-mode results are model-based causal estimates under standard
-identifying assumptions.</li>
+<li>VS-mode results include <code>gformula</code>, <code>iptw_km</code>,
+and <code>iptw_cox</code>, so the method label should be interpreted
+explicitly.</li>
 <li>SOC-only outputs are projections, not causal estimates.</li>
 <li>In real programs, diagnostics should be interpreted together with
 data provenance, treatment policy definitions, and endpoint adjudication

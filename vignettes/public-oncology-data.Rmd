@@ -12,6 +12,17 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  if (file.exists("DESCRIPTION")) {
+    pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else if (file.exists("../DESCRIPTION")) {
+    pkgload::load_all("..", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else {
+    library(cce)
+  }
+} else {
+  library(cce)
+}
 ```
 
 ## Overview
@@ -24,7 +35,6 @@ covariates.
 ## Prepare the public dataset
 
 ```{r}
-library(cce)
 library(survival)
 
 data(veteran, package = "survival")
@@ -36,6 +46,16 @@ veteran2$subgroup <- as.character(veteran2$celltype)
 veteran2$prior <- factor(veteran2$prior)
 
 head(veteran2)
+```
+
+```{r}
+profile_cce_dataset(
+  data = veteran2,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup"
+)
 ```
 
 ## Fit a VS comparison
@@ -58,7 +78,7 @@ summary(vs_fit)
 ```
 
 ```{r, fig.width = 7, fig.height = 4}
-plot(vs_fit, method = "iptw", subgroup = "All")
+plot(vs_fit, method = "iptw_km", subgroup = "All")
 ```
 
 ```{r}
@@ -96,8 +116,8 @@ plot(soc_fit, subgroup = "All")
 
 ## Interpretation notes
 
-- VS-mode results are model-based causal estimates under standard identifying
-  assumptions.
+- VS-mode results include `gformula`, `iptw_km`, and `iptw_cox`, so the method
+  label should be interpreted explicitly.
 - SOC-only outputs are projections, not causal estimates.
 - In real programs, diagnostics should be interpreted together with data
   provenance, treatment policy definitions, and endpoint adjudication rules.

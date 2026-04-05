@@ -18,4 +18,7 @@ test_that("VS mode returns expected tables", {
   expect_true(all(c("delta_rmst", "delta_survival") %in% names(as_effects_df(fit))))
   expect_true(nrow(as_diagnostics_df(fit)) > 0)
   expect_true(all(is.finite(as_effects_df(fit)$delta_rmst)))
+  expect_true(all(c("gformula", "iptw_km", "iptw_cox") %in% unique(as_curves_df(fit)$method)))
+  expect_true(identical(fit$meta$estimators, c("gformula", "iptw_km", "iptw_cox")))
+  expect_true("thresholds" %in% names(fit$meta))
 })

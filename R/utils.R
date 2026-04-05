@@ -235,3 +235,36 @@ label_from_fail_flags <- function(fail_flags) {
 run_stamp <- function() {
   format(Sys.time(), "%Y%m%d-%H%M%S")
 }
+
+weighted_km_survival <- function(data, time, event, weights, times) {
+  data$km_weight <- weights
+  fit <- survival::survfit(
+    make_surv_formula(time, event, "1"),
+    data = data,
+    weights = km_weight
+  )
+  evaluate_step(fit$time, fit$surv, times, initial = 1)
+}
+
+named_count_table <- function(x) {
+  tab <- table(x, useNA = "ifany")
+  out <- as.list(as.integer(tab))
+  names(out) <- names(tab)
+  out
+}
+
+capture_dataset_attributes <- function(data) {
+  list(
+    spec = attr(data, "spec"),
+    exclusions = attr(data, "exclusions"),
+    validation_report = attr(data, "validation_report"),
+    profile = attr(data, "profile")
+  )
+}
+
+profile_list_for_meta <- function(profile) {
+  if (inherits(profile, "cce_profile")) {
+    return(unclass(profile))
+  }
+  profile
+}

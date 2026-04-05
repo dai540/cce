@@ -15,6 +15,21 @@ build_analysis_dataset <- function(
     outcomes,
     biomarkers = NULL,
     spec) {
+  validation_report <- validate_cce_tables(
+    patient_baseline = patient_baseline,
+    treatment_episodes = treatment_episodes,
+    outcomes = outcomes,
+    biomarkers = biomarkers,
+    spec = spec
+  )
+  fatal_issues <- validation_report[validation_report$severity == "fatal", , drop = FALSE]
+  if (nrow(fatal_issues) > 0L) {
+    stop(
+      sprintf("Input validation failed: %s.", paste(fatal_issues$issue, collapse = "; ")),
+      call. = FALSE
+    )
+  }
+
   assert_data_frame(patient_baseline, "patient_baseline")
   assert_data_frame(treatment_episodes, "treatment_episodes")
   assert_data_frame(outcomes, "outcomes")
@@ -131,6 +146,14 @@ build_analysis_dataset <- function(
   rownames(merged) <- NULL
   attr(merged, "spec") <- spec
   attr(merged, "exclusions") <- exclusion
+  attr(merged, "validation_report") <- validation_report
+  attr(merged, "profile") <- profile_cce_dataset(
+    merged,
+    arm = "arm",
+    time = spec$time_col,
+    event = spec$event_col,
+    subgroup = "subgroup"
+  )
   class(merged) <- c("cce_dataset", class(merged))
   merged
 }

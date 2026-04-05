@@ -12,6 +12,17 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  if (file.exists("DESCRIPTION")) {
+    pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else if (file.exists("../DESCRIPTION")) {
+    pkgload::load_all("..", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else {
+    library(cce)
+  }
+} else {
+  library(cce)
+}
 ```
 
 ## Overview
@@ -19,6 +30,7 @@ knitr::opts_chunk$set(
 This article shows the full CCE workflow on bundled synthetic data:
 
 1. create normalized source tables
+2. validate the source tables before assembly
 2. build an analysis-ready cohort
 3. estimate a VS-mode comparison
 4. run SOC-only projection scenarios
@@ -27,8 +39,6 @@ This article shows the full CCE workflow on bundled synthetic data:
 ## Generate the example data
 
 ```{r}
-library(cce)
-
 demo <- cce_demo_data(n = 240, seed = 42)
 names(demo)
 ```
@@ -52,6 +62,16 @@ roundtrip_spec$covariates
 ## Rebuild the analysis dataset from normalized tables
 
 ```{r}
+validate_cce_tables(
+  patient_baseline = demo$patient_baseline,
+  treatment_episodes = demo$treatment_episodes,
+  outcomes = demo$outcomes,
+  biomarkers = demo$biomarkers,
+  spec = roundtrip_spec
+)
+```
+
+```{r}
 analysis <- build_analysis_dataset(
   patient_baseline = demo$patient_baseline,
   treatment_episodes = demo$treatment_episodes,
@@ -61,6 +81,16 @@ analysis <- build_analysis_dataset(
 )
 
 head(analysis)
+```
+
+```{r}
+profile_cce_dataset(
+  data = analysis,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup"
+)
 ```
 
 ## VS-mode estimation
@@ -142,6 +172,9 @@ The written directory contains:
 - `curves.csv`
 - `effects.csv`
 - `diagnostics.csv`
+
+`results.json` also stores the covariate set, threshold settings, source spec,
+exclusion summary, and dataset profile for auditability.
 
 ## Notes
 

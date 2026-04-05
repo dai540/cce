@@ -8,6 +8,10 @@
   : Read a CCE specification from YAML
 - [`write_cce_spec()`](https://dai540.github.io/cce/reference/write_cce_spec.md)
   : Write a CCE specification to YAML
+- [`validate_cce_tables()`](https://dai540.github.io/cce/reference/validate_cce_tables.md)
+  : Validate normalized CCE source tables without stopping the workflow
+- [`profile_cce_dataset()`](https://dai540.github.io/cce/reference/profile_cce_dataset.md)
+  : Profile an analysis-ready CCE dataset
 - [`build_analysis_dataset()`](https://dai540.github.io/cce/reference/build_analysis_dataset.md)
   : Build an analysis-ready dataset from normalized CCE tables
 - [`cce_demo_data()`](https://dai540.github.io/cce/reference/cce_demo_data.md)

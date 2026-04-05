@@ -5,7 +5,8 @@ settings. It focuses on a practical workflow:
 
 - validate normalized source tables
 - build an analysis-ready cohort
-- estimate adjusted VS-mode survival curves with g-formula and IPTW
+- estimate adjusted VS-mode survival curves with g-formula, `iptw_km`,
+  and `iptw_cox`
 - project SOC-only curves under hazard-ratio scenarios
 - export machine-readable results for downstream reporting
 
@@ -17,7 +18,15 @@ tutorials:
 - a public oncology dataset workflow using
   [`survival::veteran`](https://rdrr.io/pkg/survival/man/veteran.html)
 
-The pkgdown site publishes both tutorials as HTML articles.
+Documentation site: <https://dai540.github.io/cce/>
+
+The pkgdown site publishes both tutorials as HTML articles and mirrors
+the function reference:
+
+- Demo tutorial:
+  <https://dai540.github.io/cce/articles/demo-data-workflow.html>
+- Real-data tutorial:
+  <https://dai540.github.io/cce/articles/public-oncology-data.html>
 
 ## Installation
 
@@ -73,10 +82,14 @@ head(as_effects_df(soc_fit))
 
 - [`cce_spec()`](https://dai540.github.io/cce/reference/cce_spec.md)
   creates a reusable schema contract
+- [`validate_cce_tables()`](https://dai540.github.io/cce/reference/validate_cce_tables.md)
+  preflights normalized source tables and returns issues
 - [`build_analysis_dataset()`](https://dai540.github.io/cce/reference/build_analysis_dataset.md)
   turns normalized tables into an analysis-ready set
+- [`profile_cce_dataset()`](https://dai540.github.io/cce/reference/profile_cce_dataset.md)
+  summarizes sample size, events, subgroup counts, and missingness
 - [`fit_cce_vs()`](https://dai540.github.io/cce/reference/fit_cce_vs.md)
-  estimates g-formula and IPTW comparator curves
+  estimates g-formula, `iptw_km`, and `iptw_cox` comparator curves
 - [`project_soc_only()`](https://dai540.github.io/cce/reference/project_soc_only.md)
   runs assumption-based PH projections
 - [`write_cce_results()`](https://dai540.github.io/cce/reference/write_cce_results.md)
@@ -99,6 +112,7 @@ Both VS and SOC-only results include:
 - tidy curve data
 - effect summaries with RMST and landmark contrasts
 - diagnostics
-- machine-readable run metadata
+- machine-readable run metadata including covariates, thresholds, spec,
+  exclusions, and dataset profile
 
 SOC-only outputs are always labeled `Projection (assumption-based)`.

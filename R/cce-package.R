@@ -10,5 +10,5 @@
 "_PACKAGE"
 
 if (getRversion() >= "2.15.1") {
-  utils::globalVariables("iptw_weight")
+  utils::globalVariables(c("iptw_weight", "km_weight"))
 }

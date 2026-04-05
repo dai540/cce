@@ -28,6 +28,7 @@ Imports:
     yaml
 Suggests:
     knitr,
+    pkgload,
     pkgdown,
     rmarkdown,
     testthat (>= 3.0.0)

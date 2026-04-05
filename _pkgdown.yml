@@ -40,6 +40,8 @@ reference:
       - cce_spec
       - read_cce_spec
       - write_cce_spec
+      - validate_cce_tables
+      - profile_cce_dataset
       - build_analysis_dataset
       - cce_demo_data
   - title: Estimation

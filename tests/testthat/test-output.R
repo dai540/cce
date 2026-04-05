@@ -17,4 +17,8 @@ test_that("results are written to disk", {
   expect_true(file.exists(file.path(out_dir, "curves.csv")))
   expect_true(file.exists(file.path(out_dir, "effects.csv")))
   expect_true(file.exists(file.path(out_dir, "diagnostics.csv")))
+
+  payload <- jsonlite::read_json(file.path(out_dir, "results.json"), simplifyVector = TRUE)
+  expect_true(all(c("covariates", "thresholds", "spec", "exclusions", "profile") %in% names(payload)))
+  expect_true(all(c("gformula", "iptw_km", "iptw_cox") %in% payload$estimators))
 })

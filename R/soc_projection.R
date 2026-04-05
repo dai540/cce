@@ -289,6 +289,7 @@ project_soc_only <- function(
     bootstrap = 0L,
     seed = 1L,
     n_grid = 100L) {
+  source_attrs <- capture_dataset_attributes(data)
   assert_data_frame(data, "data")
   assert_scalar_character(time, "time")
   assert_scalar_character(event, "event")
@@ -314,6 +315,13 @@ project_soc_only <- function(
   }
   hr_scenarios <- sort(unique(as.numeric(hr_scenarios)))
   times <- default_time_grid(data[[time]], tau = tau, n_grid = n_grid)
+  fit_profile <- profile_cce_dataset(
+    data = data,
+    arm = if (!is.null(arm)) arm else NULL,
+    time = time,
+    event = event,
+    subgroup = subgroup
+  )
 
   base_res <- fit_soc_once(
     data = data,
@@ -391,6 +399,26 @@ project_soc_only <- function(
       tau = tau,
       landmark_times = landmark_times,
       bootstrap = bootstrap,
+      estimators = "projection_ph",
+      columns = list(
+        arm = arm,
+        time = time,
+        event = event,
+        subgroup = subgroup
+      ),
+      soc_level = soc_level,
+      subgroup_levels = if (!is.null(subgroup)) sort(unique(as.character(data[[subgroup]]))) else "All",
+      hr_scenarios = hr_scenarios,
+      target_delta_rmst = target_delta_rmst,
+      prior = list(
+        mean_log_hr = prior_mean_log_hr,
+        sd_log_hr = prior_sd_log_hr,
+        draws = prior_draws
+      ),
+      spec = if (!is.null(source_attrs$spec)) unclass(source_attrs$spec) else NULL,
+      exclusions = source_attrs$exclusions,
+      validation_report = source_attrs$validation_report,
+      profile = profile_list_for_meta(fit_profile),
       generated_at = as.character(Sys.time()),
       run_id = run_stamp()
     )

@@ -12,8 +12,17 @@ It covers normalized input validation, analysis cohort assembly,
 standardized survival estimation, SOC-only projection, diagnostics, and
 machine-readable exports.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/dai540/cce}
+  \item \url{https://dai540.github.io/cce/}
+  \item Report bugs at \url{https://github.com/dai540/cce/issues}
+}
+
+}
 \author{
-\strong{Maintainer}: Dai Dai \email{daik54015@gmail.com}
+\strong{Maintainer}: Dai
 
 }
 \keyword{internal}

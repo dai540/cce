@@ -24,6 +24,53 @@ diagnostic_row <- function(method, subgroup, metric, value, threshold = NA_real_
   )
 }
 
+compute_stabilized_weights <- function(data, arm, covariates, arm_levels, weight_cap) {
+  active_covariates <- covariates[vapply(data[covariates], function(x) {
+    length(unique(x[!is.na(x)])) > 1L
+  }, logical(1))]
+  data$arm_binary <- as.integer(data[[arm]] == arm_levels[2L])
+  ps_model <- stats::glm(
+    formula = make_ps_formula(active_covariates),
+    family = stats::binomial(),
+    data = data
+  )
+  ps <- stats::predict(ps_model, type = "response")
+  ps <- pmin(pmax(ps, 1e-6), 1 - 1e-6)
+  pa <- mean(data$arm_binary)
+  weights <- ifelse(data$arm_binary == 1L, pa / ps, (1 - pa) / (1 - ps))
+  weights <- pmin(weights, weight_cap)
+  list(
+    data = data,
+    active_covariates = active_covariates,
+    ps_model = ps_model,
+    ps = ps,
+    weights = weights
+  )
+}
+
+weighted_km_curves_by_arm <- function(data, arm, time, event, arm_levels, weights, times, subgroup_name) {
+  lapply(arm_levels, function(level) {
+    arm_idx <- data[[arm]] == level
+    surv <- weighted_km_survival(
+      data = data[arm_idx, , drop = FALSE],
+      time = time,
+      event = event,
+      weights = weights[arm_idx],
+      times = times
+    )
+    data.frame(
+      mode = "vs",
+      method = "iptw_km",
+      subgroup = subgroup_name,
+      arm = level,
+      time = times,
+      survival = surv,
+      n_risk = n_risk_at(data[arm_idx, time], times),
+      stringsAsFactors = FALSE
+    )
+  })
+}
+
 fit_vs_subgroup <- function(
     data,
     arm,
@@ -51,9 +98,17 @@ fit_vs_subgroup <- function(
       call. = FALSE
     )
   }
-  active_covariates <- covariates[vapply(data[covariates], function(x) {
-    length(unique(x[!is.na(x)])) > 1L
-  }, logical(1))]
+  weight_fit <- compute_stabilized_weights(
+    data = data,
+    arm = arm,
+    covariates = covariates,
+    arm_levels = arm_levels,
+    weight_cap = weight_cap
+  )
+  data <- weight_fit$data
+  active_covariates <- weight_fit$active_covariates
+  ps <- weight_fit$ps
+  weights <- weight_fit$weights
 
   g_model <- survival::coxph(
     formula = make_surv_formula(time, event, c(arm, active_covariates)),
@@ -76,18 +131,17 @@ fit_vs_subgroup <- function(
     )
   })
 
-  data$arm_binary <- as.integer(data[[arm]] == arm_levels[2L])
-  ps_model <- stats::glm(
-    formula = make_ps_formula(active_covariates),
-    family = stats::binomial(),
-    data = data
-  )
-  ps <- stats::predict(ps_model, type = "response")
-  ps <- pmin(pmax(ps, 1e-6), 1 - 1e-6)
-  pa <- mean(data$arm_binary)
-  weights <- ifelse(data$arm_binary == 1L, pa / ps, (1 - pa) / (1 - ps))
-  weights <- pmin(weights, weight_cap)
   data$iptw_weight <- weights
+  iptw_km_curves <- weighted_km_curves_by_arm(
+    data = data,
+    arm = arm,
+    time = time,
+    event = event,
+    arm_levels = arm_levels,
+    weights = weights,
+    times = times,
+    subgroup_name = subgroup_name
+  )
 
   iptw_model <- survival::coxph(
     formula = make_surv_formula(time, event, arm),
@@ -102,7 +156,7 @@ fit_vs_subgroup <- function(
     surv <- standardized_survival_from_cox(iptw_model, data, arm = arm, arm_level = level, times = times)
     data.frame(
       mode = "vs",
-      method = "iptw",
+      method = "iptw_cox",
       subgroup = subgroup_name,
       arm = level,
       time = times,
@@ -118,29 +172,29 @@ fit_vs_subgroup <- function(
   max_after <- if (length(smd_after) == 0L) 0 else max(abs(smd_after))
 
   diagnostics <- do.call(rbind, list(
-    diagnostic_row("iptw", subgroup_name, "max_weight", max(weights), fail_max_weight,
+    diagnostic_row("iptw_km", subgroup_name, "max_weight", max(weights), fail_max_weight,
       if (max(weights) > fail_max_weight) "fail" else if (max(weights) > warning_max_weight) "warning" else "ok"
     ),
-    diagnostic_row("iptw", subgroup_name, "ess_total", ess(weights), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "ess_arm0", ess(weights[data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "ess_arm1", ess(weights[data[[arm]] == arm_levels[2L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "max_abs_smd_before", max_before, warning_smd,
+    diagnostic_row("iptw_km", subgroup_name, "ess_total", ess(weights), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "ess_arm0", ess(weights[data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "ess_arm1", ess(weights[data[[arm]] == arm_levels[2L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "max_abs_smd_before", max_before, warning_smd,
       if (max_before > fail_smd) "fail" else if (max_before > warning_smd) "warning" else "ok"
     ),
-    diagnostic_row("iptw", subgroup_name, "max_abs_smd_after", max_after, warning_smd,
+    diagnostic_row("iptw_km", subgroup_name, "max_abs_smd_after", max_after, warning_smd,
       if (max_after > fail_smd) "fail" else if (max_after > warning_smd) "warning" else "ok"
     ),
-    diagnostic_row("iptw", subgroup_name, "ps_min_arm0", min(ps[data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "ps_max_arm0", max(ps[data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "ps_min_arm1", min(ps[data[[arm]] == arm_levels[2L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "ps_max_arm1", max(ps[data[[arm]] == arm_levels[2L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "n_arm0", sum(data[[arm]] == arm_levels[1L]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "n_arm1", sum(data[[arm]] == arm_levels[2L]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "events_arm0", sum(data[[event]][data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
-    diagnostic_row("iptw", subgroup_name, "events_arm1", sum(data[[event]][data[[arm]] == arm_levels[2L]]), NA_real_, "info")
+    diagnostic_row("iptw_km", subgroup_name, "ps_min_arm0", min(ps[data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "ps_max_arm0", max(ps[data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "ps_min_arm1", min(ps[data[[arm]] == arm_levels[2L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "ps_max_arm1", max(ps[data[[arm]] == arm_levels[2L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "n_arm0", sum(data[[arm]] == arm_levels[1L]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "n_arm1", sum(data[[arm]] == arm_levels[2L]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "events_arm0", sum(data[[event]][data[[arm]] == arm_levels[1L]]), NA_real_, "info"),
+    diagnostic_row("iptw_km", subgroup_name, "events_arm1", sum(data[[event]][data[[arm]] == arm_levels[2L]]), NA_real_, "info")
   ))
 
-  curves <- do.call(rbind, c(g_curves, iptw_curves))
+  curves <- do.call(rbind, c(g_curves, iptw_km_curves, iptw_curves))
   effects <- effect_rows_from_curves(curves, subgroup = subgroup_name, tau = tau, landmark_times = landmark_times)
   list(curves = curves, effects = effects, diagnostics = diagnostics)
 }
@@ -191,11 +245,16 @@ fit_vs_once <- function(
 
   discordance <- FALSE
   all_effects <- effects[effects$subgroup == "All", , drop = FALSE]
-  if (length(unique(all_effects$method)) == 2L) {
-    delta_by_method <- stats::aggregate(delta_rmst ~ method, data = all_effects[all_effects$landmark_time == max(landmark_times), , drop = FALSE], FUN = mean)
-    if (nrow(delta_by_method) == 2L) {
-      discordance <- sign(delta_by_method$delta_rmst[1L]) != sign(delta_by_method$delta_rmst[2L])
-    }
+  primary_effects <- all_effects[
+    all_effects$method %in% c("gformula", "iptw_km") &
+      all_effects$landmark_time == max(landmark_times),
+    ,
+    drop = FALSE
+  ]
+  if (length(unique(primary_effects$method)) == 2L) {
+    delta_by_method <- stats::aggregate(delta_rmst ~ method, data = primary_effects, FUN = mean)
+    discordance <- sign(delta_by_method$delta_rmst[delta_by_method$method == "gformula"]) !=
+      sign(delta_by_method$delta_rmst[delta_by_method$method == "iptw_km"])
   }
   fail_flags <- list(
     max_weight_fail = any(diagnostics$metric == "max_weight" & diagnostics$status == "fail"),
@@ -260,9 +319,10 @@ bootstrap_vs <- function(
 #' Estimate a counterfactual VS comparison
 #'
 #' `fit_cce_vs()` fits two complementary estimators for a binary treatment
-#' comparison: a Cox-model-based g-formula standardization and an inverse
-#' probability of treatment weighting analysis. The function returns tidy
-#' curves, effects, diagnostics, and machine-readable metadata.
+#' comparison: a Cox-model-based g-formula standardization, an IPTW-weighted
+#' Kaplan-Meier curve (`iptw_km`), and an IPTW-weighted Cox standardization
+#' (`iptw_cox`). The function returns tidy curves, effects, diagnostics, and
+#' machine-readable metadata.
 #'
 #' @param data Analysis-ready data frame.
 #' @param arm,time,event Column names identifying treatment assignment,
@@ -300,6 +360,7 @@ fit_cce_vs <- function(
     fail_max_weight = 50,
     warning_smd = 0.10,
     fail_smd = 0.20) {
+  source_attrs <- capture_dataset_attributes(data)
   assert_data_frame(data, "data")
   assert_scalar_character(arm, "arm")
   assert_scalar_character(time, "time")
@@ -331,6 +392,13 @@ fit_cce_vs <- function(
   }
   landmark_times <- sort(unique(as.numeric(landmark_times)))
   times <- default_time_grid(data[[time]], tau = tau, n_grid = n_grid)
+  fit_profile <- profile_cce_dataset(
+    data = data,
+    arm = arm,
+    time = time,
+    event = event,
+    subgroup = subgroup
+  )
 
   base_res <- fit_vs_once(
     data = data,
@@ -403,6 +471,27 @@ fit_cce_vs <- function(
       tau = tau,
       landmark_times = landmark_times,
       bootstrap = bootstrap,
+      estimators = c("gformula", "iptw_km", "iptw_cox"),
+      columns = list(
+        arm = arm,
+        time = time,
+        event = event,
+        subgroup = subgroup
+      ),
+      arm_levels = levels(data[[arm]]),
+      covariates = covariates,
+      subgroup_levels = if (!is.null(subgroup)) sort(unique(as.character(data[[subgroup]]))) else "All",
+      thresholds = list(
+        weight_cap = weight_cap,
+        warning_max_weight = warning_max_weight,
+        fail_max_weight = fail_max_weight,
+        warning_smd = warning_smd,
+        fail_smd = fail_smd
+      ),
+      spec = if (!is.null(source_attrs$spec)) unclass(source_attrs$spec) else NULL,
+      exclusions = source_attrs$exclusions,
+      validation_report = source_attrs$validation_report,
+      profile = profile_list_for_meta(fit_profile),
       generated_at = as.character(Sys.time()),
       run_id = run_stamp()
     )

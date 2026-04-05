@@ -11,7 +11,6 @@ with treatment assignment and baseline covariates.
 ## Prepare the public dataset
 
 ``` r
-library(cce)
 library(survival)
 
 data(veteran, package = "survival")
@@ -33,6 +32,19 @@ head(veteran2)
 #> 6   1 squamous   10      1    20        5  49     0 SOC     1 squamous
 ```
 
+``` r
+profile_cce_dataset(
+  data = veteran2,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup"
+)
+#> CCE dataset profile
+#>     n events event_rate median_follow_up max_follow_up
+#> 1 137    128  0.9343066               80           999
+```
+
 ## Fit a VS comparison
 
 ``` r
@@ -52,59 +64,59 @@ vs_fit <- fit_cce_vs(
 summary(vs_fit)
 #> CCE VS result
 #> Label: ok 
-#> Warnings: Residual covariate imbalance detected. | g-formula and IPTW disagree on the RMST direction. 
+#> Warnings: Residual covariate imbalance detected. 
 #>   mode   method subgroup tau rmst_arm0 rmst_arm1    delta_rmst landmark_time
-#> 1   vs gformula      All 180 17.423484 13.708854 -3.7146293600            90
-#> 2   vs gformula      All 180 17.423484 13.708854 -3.7146293600           180
-#> 3   vs     iptw      All 180 88.513868 88.517794  0.0039259530            90
-#> 4   vs     iptw      All 180 88.513868 88.517794  0.0039259530           180
-#> 5   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898            90
-#> 6   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898           180
+#> 1   vs gformula      All 180  17.42348  13.70885  -3.714629360            90
+#> 2   vs gformula      All 180  17.42348  13.70885  -3.714629360           180
+#> 3   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041            90
+#> 4   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041           180
+#> 5   vs iptw_cox      All 180  88.51387  88.51779   0.003925953            90
+#> 6   vs iptw_cox      All 180  88.51387  88.51779   0.003925953           180
 #>   survival_arm0 survival_arm1 delta_survival delta_rmst_lower_ci
-#> 1  2.284475e-02  1.062429e-02  -1.222046e-02          -9.1317452
-#> 2  1.166565e-03  2.869724e-04  -8.795925e-04          -9.1317452
-#> 3  4.753097e-01  4.753350e-01   2.531322e-05         -11.0828252
-#> 4  2.121428e-01  2.121664e-01   2.355226e-05         -11.0828252
-#> 5 2.693089e-210 2.900255e-222 -2.693089e-210          -0.8764966
-#> 6  0.000000e+00  0.000000e+00   0.000000e+00          -0.8764966
+#> 1   0.022844751  0.0106242942  -1.222046e-02           -9.131745
+#> 2   0.001166565  0.0002869724  -8.795925e-04           -9.131745
+#> 3   0.544475074  0.4012334748  -1.432416e-01          -30.010487
+#> 4   0.191913854  0.2287792627   3.686541e-02          -30.010487
+#> 5   0.475309651  0.4753349641   2.531322e-05          -11.082825
+#> 6   0.212142801  0.2121663536   2.355226e-05          -11.082825
 #>   delta_rmst_upper_ci delta_survival_lower_ci delta_survival_upper_ci
-#> 1         -0.98454187           -3.990590e-02           -1.360854e-04
-#> 2         -0.98454187           -2.462785e-02           -1.241037e-09
-#> 3          7.69667224           -7.205622e-02            4.926232e-02
-#> 4          7.69667224           -6.251200e-02            4.403169e-02
-#> 5          0.03391937           -9.203209e-22            1.794115e-24
-#> 6          0.03391937          -5.377227e-151           2.166097e-208
+#> 1          -0.9845419            -0.039905898           -1.360854e-04
+#> 2          -0.9845419            -0.024627849           -1.241037e-09
+#> 3          -4.4122734            -0.272187557           -7.639318e-02
+#> 4          -4.4122734            -0.006723102            9.796009e-02
+#> 5           7.6966722            -0.072056221            4.926232e-02
+#> 6           7.6966722            -0.062511997            4.403169e-02
 ```
 
 ``` r
-plot(vs_fit, method = "iptw", subgroup = "All")
+plot(vs_fit, method = "iptw_km", subgroup = "All")
 ```
 
-![](public-oncology-data_files/figure-html/unnamed-chunk-4-1.png)
+![](public-oncology-data_files/figure-html/unnamed-chunk-5-1.png)
 
 ``` r
 head(as_effects_df(vs_fit))
 #>   mode   method subgroup tau rmst_arm0 rmst_arm1    delta_rmst landmark_time
-#> 1   vs gformula      All 180 17.423484 13.708854 -3.7146293600            90
-#> 2   vs gformula      All 180 17.423484 13.708854 -3.7146293600           180
-#> 3   vs     iptw      All 180 88.513868 88.517794  0.0039259530            90
-#> 4   vs     iptw      All 180 88.513868 88.517794  0.0039259530           180
-#> 5   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898            90
-#> 6   vs gformula    adeno 180  3.637697  3.637374 -0.0003230898           180
+#> 1   vs gformula      All 180  17.42348  13.70885  -3.714629360            90
+#> 2   vs gformula      All 180  17.42348  13.70885  -3.714629360           180
+#> 3   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041            90
+#> 4   vs  iptw_km      All 180  94.46028  81.83579 -12.624490041           180
+#> 5   vs iptw_cox      All 180  88.51387  88.51779   0.003925953            90
+#> 6   vs iptw_cox      All 180  88.51387  88.51779   0.003925953           180
 #>   survival_arm0 survival_arm1 delta_survival delta_rmst_lower_ci
-#> 1  2.284475e-02  1.062429e-02  -1.222046e-02          -9.1317452
-#> 2  1.166565e-03  2.869724e-04  -8.795925e-04          -9.1317452
-#> 3  4.753097e-01  4.753350e-01   2.531322e-05         -11.0828252
-#> 4  2.121428e-01  2.121664e-01   2.355226e-05         -11.0828252
-#> 5 2.693089e-210 2.900255e-222 -2.693089e-210          -0.8764966
-#> 6  0.000000e+00  0.000000e+00   0.000000e+00          -0.8764966
+#> 1   0.022844751  0.0106242942  -1.222046e-02           -9.131745
+#> 2   0.001166565  0.0002869724  -8.795925e-04           -9.131745
+#> 3   0.544475074  0.4012334748  -1.432416e-01          -30.010487
+#> 4   0.191913854  0.2287792627   3.686541e-02          -30.010487
+#> 5   0.475309651  0.4753349641   2.531322e-05          -11.082825
+#> 6   0.212142801  0.2121663536   2.355226e-05          -11.082825
 #>   delta_rmst_upper_ci delta_survival_lower_ci delta_survival_upper_ci
-#> 1         -0.98454187           -3.990590e-02           -1.360854e-04
-#> 2         -0.98454187           -2.462785e-02           -1.241037e-09
-#> 3          7.69667224           -7.205622e-02            4.926232e-02
-#> 4          7.69667224           -6.251200e-02            4.403169e-02
-#> 5          0.03391937           -9.203209e-22            1.794115e-24
-#> 6          0.03391937          -5.377227e-151           2.166097e-208
+#> 1          -0.9845419            -0.039905898           -1.360854e-04
+#> 2          -0.9845419            -0.024627849           -1.241037e-09
+#> 3          -4.4122734            -0.272187557           -7.639318e-02
+#> 4          -4.4122734            -0.006723102            9.796009e-02
+#> 5           7.6966722            -0.072056221            4.926232e-02
+#> 6           7.6966722            -0.062511997            4.403169e-02
 ```
 
 ## Create an SOC-only projection
@@ -166,12 +178,12 @@ summary(soc_fit)
 plot(soc_fit, subgroup = "All")
 ```
 
-![](public-oncology-data_files/figure-html/unnamed-chunk-7-1.png)
+![](public-oncology-data_files/figure-html/unnamed-chunk-8-1.png)
 
 ## Interpretation notes
 
-- VS-mode results are model-based causal estimates under standard
-  identifying assumptions.
+- VS-mode results include `gformula`, `iptw_km`, and `iptw_cox`, so the
+  method label should be interpreted explicitly.
 - SOC-only outputs are projections, not causal estimates.
 - In real programs, diagnostics should be interpreted together with data
   provenance, treatment policy definitions, and endpoint adjudication

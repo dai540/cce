@@ -5,16 +5,15 @@
 This article shows the full CCE workflow on bundled synthetic data:
 
 1.  create normalized source tables
-2.  build an analysis-ready cohort
-3.  estimate a VS-mode comparison
-4.  run SOC-only projection scenarios
-5.  export results for reporting
+2.  validate the source tables before assembly
+3.  build an analysis-ready cohort
+4.  estimate a VS-mode comparison
+5.  run SOC-only projection scenarios
+6.  export results for reporting
 
 ## Generate the example data
 
 ``` r
-library(cce)
-
 demo <- cce_demo_data(n = 240, seed = 42)
 names(demo)
 #> [1] "patient_baseline"   "treatment_episodes" "outcomes"          
@@ -64,6 +63,39 @@ str(demo$analysis_data)
 #>  - attr(*, "exclusions")='data.frame':   1 obs. of  2 variables:
 #>   ..$ reason: chr "missing_required_fields"
 #>   ..$ n     : int 0
+#>  - attr(*, "validation_report")='data.frame':    0 obs. of  4 variables:
+#>   ..$ component: chr(0) 
+#>   ..$ severity : chr(0) 
+#>   ..$ issue    : chr(0) 
+#>   ..$ n        : num(0) 
+#>  - attr(*, "profile")=List of 5
+#>   ..$ overall        :'data.frame':  1 obs. of  5 variables:
+#>   .. ..$ n               : int 240
+#>   .. ..$ events          : int 157
+#>   .. ..$ event_rate      : num 0.654
+#>   .. ..$ median_follow_up: num 218
+#>   .. ..$ max_follow_up   : num 705
+#>   ..$ by_arm         :'data.frame':  2 obs. of  4 variables:
+#>   .. ..$ arm       : chr [1:2] "A" "SOC"
+#>   .. ..$ n         : int [1:2] 110 130
+#>   .. ..$ events    : int [1:2] 65 92
+#>   .. ..$ event_rate: num [1:2] 0.591 0.708
+#>   ..$ by_subgroup    :'data.frame':  2 obs. of  4 variables:
+#>   .. ..$ subgroup  : chr [1:2] "High" "Low"
+#>   .. ..$ n         : int [1:2] 129 111
+#>   .. ..$ events    : int [1:2] 78 79
+#>   .. ..$ event_rate: num [1:2] 0.605 0.712
+#>   ..$ by_arm_subgroup:'data.frame':  4 obs. of  5 variables:
+#>   .. ..$ arm       : chr [1:4] "A" "A" "SOC" "SOC"
+#>   .. ..$ subgroup  : chr [1:4] "High" "Low" "High" "Low"
+#>   .. ..$ n         : int [1:4] 53 57 76 54
+#>   .. ..$ events    : int [1:4] 26 39 52 40
+#>   .. ..$ event_rate: num [1:4] 0.491 0.684 0.684 0.741
+#>   ..$ missingness    :'data.frame':  13 obs. of  3 variables:
+#>   .. ..$ column      : chr [1:13] "patient_id" "index_date" "age" "sex" ...
+#>   .. ..$ missing_n   : num [1:13] 0 0 0 0 0 0 0 0 0 0 ...
+#>   .. ..$ missing_rate: num [1:13] 0 0 0 0 0 0 0 0 0 0 ...
+#>   ..- attr(*, "class")= chr "cce_profile"
 ```
 
 ## Round-trip the analysis specification
@@ -77,6 +109,18 @@ roundtrip_spec$covariates
 ```
 
 ## Rebuild the analysis dataset from normalized tables
+
+``` r
+validate_cce_tables(
+  patient_baseline = demo$patient_baseline,
+  treatment_episodes = demo$treatment_episodes,
+  outcomes = demo$outcomes,
+  biomarkers = demo$biomarkers,
+  spec = roundtrip_spec
+)
+#> [1] component severity  issue     n        
+#> <0 rows> (or 0-length row.names)
+```
 
 ``` r
 analysis <- build_analysis_dataset(
@@ -104,6 +148,19 @@ head(analysis)
 #> 6   78     1          2022-07-19      Low
 ```
 
+``` r
+profile_cce_dataset(
+  data = analysis,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup"
+)
+#> CCE dataset profile
+#>     n events event_rate median_follow_up max_follow_up
+#> 1 240    157  0.6541667              218           705
+```
+
 ## VS-mode estimation
 
 ``` r
@@ -127,31 +184,31 @@ summary(vs_fit)
 #>   mode   method subgroup tau rmst_arm0 rmst_arm1 delta_rmst landmark_time
 #> 1   vs gformula      All 365  188.1689  229.3371   41.16822           180
 #> 2   vs gformula      All 365  188.1689  229.3371   41.16822           365
-#> 3   vs     iptw      All 365  212.9197  250.6222   37.70248           180
-#> 4   vs     iptw      All 365  212.9197  250.6222   37.70248           365
-#> 5   vs gformula     High 365  273.6294  313.9454   40.31598           180
-#> 6   vs gformula     High 365  273.6294  313.9454   40.31598           365
+#> 3   vs  iptw_km      All 365  205.7951  259.6433   53.84820           180
+#> 4   vs  iptw_km      All 365  205.7951  259.6433   53.84820           365
+#> 5   vs iptw_cox      All 365  212.9197  250.6222   37.70248           180
+#> 6   vs iptw_cox      All 365  212.9197  250.6222   37.70248           365
 #>   survival_arm0 survival_arm1 delta_survival delta_rmst_lower_ci
 #> 1     0.4739779     0.6057646      0.1317867           10.780157
 #> 2     0.2492317     0.3914337      0.1422019           10.780157
-#> 3     0.5536321     0.6708851      0.1172530            9.650522
-#> 4     0.3328632     0.4758616      0.1429984            9.650522
-#> 5     0.7562308     0.8674062      0.1111754            4.487278
-#> 6     0.5416310     0.7308945      0.1892634            4.487278
+#> 3     0.5143146     0.7197778      0.2054632           -6.929098
+#> 4     0.3307018     0.4798347      0.1491330           -6.929098
+#> 5     0.5536321     0.6708851      0.1172530            9.650522
+#> 6     0.3328632     0.4758616      0.1429984            9.650522
 #>   delta_rmst_upper_ci delta_survival_lower_ci delta_survival_upper_ci
-#> 1            51.67511              0.03257590               0.1572542
-#> 2            51.67511              0.01287977               0.1960966
-#> 3            55.57671              0.03102979               0.1685626
-#> 4            55.57671              0.03443802               0.2109653
-#> 5            99.17120              0.01037481               0.3216487
-#> 6            99.17120              0.02652063               0.3774753
+#> 1            51.67511             0.032575899               0.1572542
+#> 2            51.67511             0.012879768               0.1960966
+#> 3            72.52610             0.003351216               0.2710959
+#> 4            72.52610             0.031542439               0.2356857
+#> 5            55.57671             0.031029790               0.1685626
+#> 6            55.57671             0.034438024               0.2109653
 ```
 
 ``` r
 plot(vs_fit, method = "gformula", subgroup = "All")
 ```
 
-![](demo-data-workflow_files/figure-html/unnamed-chunk-7-1.png)
+![](demo-data-workflow_files/figure-html/unnamed-chunk-9-1.png)
 
 The tidy effects table is designed to feed downstream reports or
 dashboards.
@@ -161,37 +218,37 @@ head(as_effects_df(vs_fit))
 #>   mode   method subgroup tau rmst_arm0 rmst_arm1 delta_rmst landmark_time
 #> 1   vs gformula      All 365  188.1689  229.3371   41.16822           180
 #> 2   vs gformula      All 365  188.1689  229.3371   41.16822           365
-#> 3   vs     iptw      All 365  212.9197  250.6222   37.70248           180
-#> 4   vs     iptw      All 365  212.9197  250.6222   37.70248           365
-#> 5   vs gformula     High 365  273.6294  313.9454   40.31598           180
-#> 6   vs gformula     High 365  273.6294  313.9454   40.31598           365
+#> 3   vs  iptw_km      All 365  205.7951  259.6433   53.84820           180
+#> 4   vs  iptw_km      All 365  205.7951  259.6433   53.84820           365
+#> 5   vs iptw_cox      All 365  212.9197  250.6222   37.70248           180
+#> 6   vs iptw_cox      All 365  212.9197  250.6222   37.70248           365
 #>   survival_arm0 survival_arm1 delta_survival delta_rmst_lower_ci
 #> 1     0.4739779     0.6057646      0.1317867           10.780157
 #> 2     0.2492317     0.3914337      0.1422019           10.780157
-#> 3     0.5536321     0.6708851      0.1172530            9.650522
-#> 4     0.3328632     0.4758616      0.1429984            9.650522
-#> 5     0.7562308     0.8674062      0.1111754            4.487278
-#> 6     0.5416310     0.7308945      0.1892634            4.487278
+#> 3     0.5143146     0.7197778      0.2054632           -6.929098
+#> 4     0.3307018     0.4798347      0.1491330           -6.929098
+#> 5     0.5536321     0.6708851      0.1172530            9.650522
+#> 6     0.3328632     0.4758616      0.1429984            9.650522
 #>   delta_rmst_upper_ci delta_survival_lower_ci delta_survival_upper_ci
-#> 1            51.67511              0.03257590               0.1572542
-#> 2            51.67511              0.01287977               0.1960966
-#> 3            55.57671              0.03102979               0.1685626
-#> 4            55.57671              0.03443802               0.2109653
-#> 5            99.17120              0.01037481               0.3216487
-#> 6            99.17120              0.02652063               0.3774753
+#> 1            51.67511             0.032575899               0.1572542
+#> 2            51.67511             0.012879768               0.1960966
+#> 3            72.52610             0.003351216               0.2710959
+#> 4            72.52610             0.031542439               0.2356857
+#> 5            55.57671             0.031029790               0.1685626
+#> 6            55.57671             0.034438024               0.2109653
 ```
 
 Diagnostics are returned in a machine-readable table.
 
 ``` r
 head(as_diagnostics_df(vs_fit))
-#>   method subgroup             metric        value threshold  status
-#> 1   iptw      All         max_weight   1.30235194      50.0      ok
-#> 2   iptw      All          ess_total 238.61717626        NA    info
-#> 3   iptw      All           ess_arm0 129.23701922        NA    info
-#> 4   iptw      All           ess_arm1 109.38039627        NA    info
-#> 5   iptw      All max_abs_smd_before   0.12160316       0.1 warning
-#> 6   iptw      All  max_abs_smd_after   0.00168784       0.1      ok
+#>    method subgroup             metric        value threshold  status
+#> 1 iptw_km      All         max_weight   1.30235194      50.0      ok
+#> 2 iptw_km      All          ess_total 238.61717626        NA    info
+#> 3 iptw_km      All           ess_arm0 129.23701922        NA    info
+#> 4 iptw_km      All           ess_arm1 109.38039627        NA    info
+#> 5 iptw_km      All max_abs_smd_before   0.12160316       0.1 warning
+#> 6 iptw_km      All  max_abs_smd_after   0.00168784       0.1      ok
 ```
 
 ## SOC-only projection
@@ -250,7 +307,7 @@ summary(soc_fit)
 plot(soc_fit, subgroup = "All")
 ```
 
-![](demo-data-workflow_files/figure-html/unnamed-chunk-11-1.png)
+![](demo-data-workflow_files/figure-html/unnamed-chunk-13-1.png)
 
 ``` r
 head(as_effects_df(soc_fit))
@@ -299,6 +356,9 @@ The written directory contains:
 - `curves.csv`
 - `effects.csv`
 - `diagnostics.csv`
+
+`results.json` also stores the covariate set, threshold settings, source
+spec, exclusion summary, and dataset profile for auditability.
 
 ## Notes
 

@@ -1,9 +1,10 @@
 # Estimate a counterfactual VS comparison
 
 `fit_cce_vs()` fits two complementary estimators for a binary treatment
-comparison: a Cox-model-based g-formula standardization and an inverse
-probability of treatment weighting analysis. The function returns tidy
-curves, effects, diagnostics, and machine-readable metadata.
+comparison: a Cox-model-based g-formula standardization, an
+IPTW-weighted Kaplan-Meier curve (`iptw_km`), and an IPTW-weighted Cox
+standardization (`iptw_cox`). The function returns tidy curves, effects,
+diagnostics, and machine-readable metadata.
 
 ## Usage
 

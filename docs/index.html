@@ -61,7 +61,8 @@
 <ul>
 <li>validate normalized source tables</li>
 <li>build an analysis-ready cohort</li>
-<li>estimate adjusted VS-mode survival curves with g-formula and IPTW</li>
+<li>estimate adjusted VS-mode survival curves with g-formula, <code>iptw_km</code>, and <code>iptw_cox</code>
+</li>
 <li>project SOC-only curves under hazard-ratio scenarios</li>
 <li>export machine-readable results for downstream reporting</li>
 </ul>
@@ -71,7 +72,14 @@
 <li>a public oncology dataset workflow using <code><a href="https://rdrr.io/pkg/survival/man/veteran.html" class="external-link">survival::veteran</a></code>
 </li>
 </ul>
-<p>The pkgdown site publishes both tutorials as HTML articles.</p>
+<p>Documentation site: <a href="https://dai540.github.io/cce/" class="uri">https://dai540.github.io/cce/</a></p>
+<p>The pkgdown site publishes both tutorials as HTML articles and mirrors the function reference:</p>
+<ul>
+<li>Demo tutorial: <a href="https://dai540.github.io/cce/articles/demo-data-workflow.html" class="uri">https://dai540.github.io/cce/articles/demo-data-workflow.html</a>
+</li>
+<li>Real-data tutorial: <a href="https://dai540.github.io/cce/articles/public-oncology-data.html" class="uri">https://dai540.github.io/cce/articles/public-oncology-data.html</a>
+</li>
+</ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -127,9 +135,13 @@
 <li>
 <code><a href="reference/cce_spec.html">cce_spec()</a></code> creates a reusable schema contract</li>
 <li>
+<code><a href="reference/validate_cce_tables.html">validate_cce_tables()</a></code> preflights normalized source tables and returns issues</li>
+<li>
 <code><a href="reference/build_analysis_dataset.html">build_analysis_dataset()</a></code> turns normalized tables into an analysis-ready set</li>
 <li>
-<code><a href="reference/fit_cce_vs.html">fit_cce_vs()</a></code> estimates g-formula and IPTW comparator curves</li>
+<code><a href="reference/profile_cce_dataset.html">profile_cce_dataset()</a></code> summarizes sample size, events, subgroup counts, and missingness</li>
+<li>
+<code><a href="reference/fit_cce_vs.html">fit_cce_vs()</a></code> estimates g-formula, <code>iptw_km</code>, and <code>iptw_cox</code> comparator curves</li>
 <li>
 <code><a href="reference/project_soc_only.html">project_soc_only()</a></code> runs assumption-based PH projections</li>
 <li>
@@ -155,7 +167,7 @@
 <li>tidy curve data</li>
 <li>effect summaries with RMST and landmark contrasts</li>
 <li>diagnostics</li>
-<li>machine-readable run metadata</li>
+<li>machine-readable run metadata including covariates, thresholds, spec, exclusions, and dataset profile</li>
 </ul>
 <p>SOC-only outputs are always labeled <code>Projection (assumption-based)</code>.</p>
 </div>

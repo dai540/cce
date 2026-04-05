@@ -5,7 +5,7 @@ It focuses on a practical workflow:
 
 - validate normalized source tables
 - build an analysis-ready cohort
-- estimate adjusted VS-mode survival curves with g-formula and IPTW
+- estimate adjusted VS-mode survival curves with g-formula, `iptw_km`, and `iptw_cox`
 - project SOC-only curves under hazard-ratio scenarios
 - export machine-readable results for downstream reporting
 
@@ -15,7 +15,13 @@ explicit, returns tidy outputs, and ships two end-to-end tutorials:
 - a synthetic demo-data workflow
 - a public oncology dataset workflow using `survival::veteran`
 
-The pkgdown site publishes both tutorials as HTML articles.
+Documentation site: <https://dai540.github.io/cce/>
+
+The pkgdown site publishes both tutorials as HTML articles and mirrors the
+function reference:
+
+- Demo tutorial: <https://dai540.github.io/cce/articles/demo-data-workflow.html>
+- Real-data tutorial: <https://dai540.github.io/cce/articles/public-oncology-data.html>
 
 ## Installation
 
@@ -70,8 +76,10 @@ head(as_effects_df(soc_fit))
 ## Main functions
 
 - `cce_spec()` creates a reusable schema contract
+- `validate_cce_tables()` preflights normalized source tables and returns issues
 - `build_analysis_dataset()` turns normalized tables into an analysis-ready set
-- `fit_cce_vs()` estimates g-formula and IPTW comparator curves
+- `profile_cce_dataset()` summarizes sample size, events, subgroup counts, and missingness
+- `fit_cce_vs()` estimates g-formula, `iptw_km`, and `iptw_cox` comparator curves
 - `project_soc_only()` runs assumption-based PH projections
 - `write_cce_results()` writes `results.json`, `curves.csv`, `effects.csv`,
   and `diagnostics.csv`
@@ -90,6 +98,6 @@ Both VS and SOC-only results include:
 - tidy curve data
 - effect summaries with RMST and landmark contrasts
 - diagnostics
-- machine-readable run metadata
+- machine-readable run metadata including covariates, thresholds, spec, exclusions, and dataset profile
 
 SOC-only outputs are always labeled `Projection (assumption-based)`.

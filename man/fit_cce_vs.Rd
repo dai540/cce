@@ -57,7 +57,8 @@ An object of class \code{cce_vs_result}.
 }
 \description{
 \code{fit_cce_vs()} fits two complementary estimators for a binary treatment
-comparison: a Cox-model-based g-formula standardization and an inverse
-probability of treatment weighting analysis. The function returns tidy
-curves, effects, diagnostics, and machine-readable metadata.
+comparison: a Cox-model-based g-formula standardization, an IPTW-weighted
+Kaplan-Meier curve (\code{iptw_km}), and an IPTW-weighted Cox standardization
+(\code{iptw_cox}). The function returns tidy curves, effects, diagnostics, and
+machine-readable metadata.
 }
