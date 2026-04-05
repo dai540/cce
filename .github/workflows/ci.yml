@@ -53,4 +53,4 @@ jobs:
       - name: Build pkgdown site
         shell: bash
         run: |
-          Rscript -e "pkgdown::build_site('.', install = FALSE, new_process = FALSE, preview = FALSE)"
+          Rscript -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); pkgdown::build_site('.', install = FALSE, new_process = FALSE, preview = FALSE)"
