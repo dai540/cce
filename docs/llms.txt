@@ -17,6 +17,8 @@ tutorials:
 - a public oncology dataset workflow using
   [`survival::veteran`](https://rdrr.io/pkg/survival/man/veteran.html)
 
+The pkgdown site publishes both tutorials as HTML articles.
+
 ## Installation
 
 From source:
@@ -69,16 +71,26 @@ head(as_effects_df(soc_fit))
 
 ## Main functions
 
-- [`cce_spec()`](reference/cce_spec.md) creates a reusable schema
-  contract
-- [`build_analysis_dataset()`](reference/build_analysis_dataset.md)
+- [`cce_spec()`](https://dai540.github.io/cce/reference/cce_spec.md)
+  creates a reusable schema contract
+- [`build_analysis_dataset()`](https://dai540.github.io/cce/reference/build_analysis_dataset.md)
   turns normalized tables into an analysis-ready set
-- [`fit_cce_vs()`](reference/fit_cce_vs.md) estimates g-formula and IPTW
-  comparator curves
-- [`project_soc_only()`](reference/project_soc_only.md) runs
-  assumption-based PH projections
-- [`write_cce_results()`](reference/write_cce_results.md) writes
-  `results.json`, `curves.csv`, `effects.csv`, and `diagnostics.csv`
+- [`fit_cce_vs()`](https://dai540.github.io/cce/reference/fit_cce_vs.md)
+  estimates g-formula and IPTW comparator curves
+- [`project_soc_only()`](https://dai540.github.io/cce/reference/project_soc_only.md)
+  runs assumption-based PH projections
+- [`write_cce_results()`](https://dai540.github.io/cce/reference/write_cce_results.md)
+  writes `results.json`, `curves.csv`, `effects.csv`, and
+  `diagnostics.csv`
+
+## Tutorials
+
+- `Demo-data workflow` walks through bundled normalized tables, cohort
+  assembly, VS-mode estimation, SOC-only projection, and file export.
+- `Public oncology data workflow` shows the same analysis pattern on the
+  real patient-level
+  [`survival::veteran`](https://rdrr.io/pkg/survival/man/veteran.html)
+  dataset.
 
 ## Output contract
 
@@ -95,41 +107,44 @@ SOC-only outputs are always labeled `Projection (assumption-based)`.
 
 ## Specifications and data assembly
 
-- [`cce_spec()`](cce_spec.md) : Create a Counterfactual Comparator
-  Engine specification
-- [`read_cce_spec()`](read_cce_spec.md) : Read a CCE specification from
-  YAML
-- [`write_cce_spec()`](write_cce_spec.md) : Write a CCE specification to
-  YAML
-- [`build_analysis_dataset()`](build_analysis_dataset.md) : Build an
-  analysis-ready dataset from normalized CCE tables
-- [`cce_demo_data()`](cce_demo_data.md) : Generate bundled synthetic
-  example data
+- [`cce_spec()`](https://dai540.github.io/cce/reference/cce_spec.md) :
+  Create a Counterfactual Comparator Engine specification
+- [`read_cce_spec()`](https://dai540.github.io/cce/reference/read_cce_spec.md)
+  : Read a CCE specification from YAML
+- [`write_cce_spec()`](https://dai540.github.io/cce/reference/write_cce_spec.md)
+  : Write a CCE specification to YAML
+- [`build_analysis_dataset()`](https://dai540.github.io/cce/reference/build_analysis_dataset.md)
+  : Build an analysis-ready dataset from normalized CCE tables
+- [`cce_demo_data()`](https://dai540.github.io/cce/reference/cce_demo_data.md)
+  : Generate bundled synthetic example data
 
 ## Estimation
 
-- [`fit_cce_vs()`](fit_cce_vs.md) : Estimate a counterfactual VS
-  comparison
-- [`project_soc_only()`](project_soc_only.md) : Project SOC-only curves
-  under proportional hazards scenarios
-- [`required_hr()`](required_hr.md) : Reverse-solve the hazard ratio
-  needed to hit an RMST target
-- [`estimate_pos_proxy()`](estimate_pos_proxy.md) : Estimate an
-  assumption-based probability-of-success proxy
+- [`fit_cce_vs()`](https://dai540.github.io/cce/reference/fit_cce_vs.md)
+  : Estimate a counterfactual VS comparison
+- [`project_soc_only()`](https://dai540.github.io/cce/reference/project_soc_only.md)
+  : Project SOC-only curves under proportional hazards scenarios
+- [`required_hr()`](https://dai540.github.io/cce/reference/required_hr.md)
+  : Reverse-solve the hazard ratio needed to hit an RMST target
+- [`estimate_pos_proxy()`](https://dai540.github.io/cce/reference/estimate_pos_proxy.md)
+  : Estimate an assumption-based probability-of-success proxy
 
 ## Outputs
 
-- [`as_curves_df()`](as_curves_df.md) : Extract curves from a CCE result
-- [`as_effects_df()`](as_effects_df.md) : Extract effect summaries from
-  a CCE result
-- [`as_diagnostics_df()`](as_diagnostics_df.md) : Extract diagnostics
-  from a CCE result
-- [`write_cce_results()`](write_cce_results.md) : Write CCE result files
-  to disk
+- [`as_curves_df()`](https://dai540.github.io/cce/reference/as_curves_df.md)
+  : Extract curves from a CCE result
+- [`as_effects_df()`](https://dai540.github.io/cce/reference/as_effects_df.md)
+  : Extract effect summaries from a CCE result
+- [`as_diagnostics_df()`](https://dai540.github.io/cce/reference/as_diagnostics_df.md)
+  : Extract diagnostics from a CCE result
+- [`write_cce_results()`](https://dai540.github.io/cce/reference/write_cce_results.md)
+  : Write CCE result files to disk
 
 # Articles
 
 ### Tutorials
 
-- [Demo-data workflow](demo-data-workflow.md):
-- [Public oncology data workflow](public-oncology-data.md):
+- [Demo-data
+  workflow](https://dai540.github.io/cce/articles/demo-data-workflow.md):
+- [Public oncology data
+  workflow](https://dai540.github.io/cce/articles/public-oncology-data.md):

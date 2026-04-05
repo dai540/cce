@@ -34,7 +34,8 @@ build_analysis_dataset(
 
 - spec:
 
-  A [`cce_spec()`](cce_spec.md) object.
+  A [`cce_spec()`](https://dai540.github.io/cce/reference/cce_spec.md)
+  object.
 
 ## Value
 

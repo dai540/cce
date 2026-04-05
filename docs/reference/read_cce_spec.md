@@ -12,7 +12,8 @@ read_cce_spec(path)
 
 - path:
 
-  YAML file created by [`write_cce_spec()`](write_cce_spec.md).
+  YAML file created by
+  [`write_cce_spec()`](https://dai540.github.io/cce/reference/write_cce_spec.md).
 
 ## Value
 

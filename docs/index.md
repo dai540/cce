@@ -17,6 +17,8 @@ tutorials:
 - a public oncology dataset workflow using
   [`survival::veteran`](https://rdrr.io/pkg/survival/man/veteran.html)
 
+The pkgdown site publishes both tutorials as HTML articles.
+
 ## Installation
 
 From source:
@@ -69,16 +71,26 @@ head(as_effects_df(soc_fit))
 
 ## Main functions
 
-- [`cce_spec()`](reference/cce_spec.md) creates a reusable schema
-  contract
-- [`build_analysis_dataset()`](reference/build_analysis_dataset.md)
+- [`cce_spec()`](https://dai540.github.io/cce/reference/cce_spec.md)
+  creates a reusable schema contract
+- [`build_analysis_dataset()`](https://dai540.github.io/cce/reference/build_analysis_dataset.md)
   turns normalized tables into an analysis-ready set
-- [`fit_cce_vs()`](reference/fit_cce_vs.md) estimates g-formula and IPTW
-  comparator curves
-- [`project_soc_only()`](reference/project_soc_only.md) runs
-  assumption-based PH projections
-- [`write_cce_results()`](reference/write_cce_results.md) writes
-  `results.json`, `curves.csv`, `effects.csv`, and `diagnostics.csv`
+- [`fit_cce_vs()`](https://dai540.github.io/cce/reference/fit_cce_vs.md)
+  estimates g-formula and IPTW comparator curves
+- [`project_soc_only()`](https://dai540.github.io/cce/reference/project_soc_only.md)
+  runs assumption-based PH projections
+- [`write_cce_results()`](https://dai540.github.io/cce/reference/write_cce_results.md)
+  writes `results.json`, `curves.csv`, `effects.csv`, and
+  `diagnostics.csv`
+
+## Tutorials
+
+- `Demo-data workflow` walks through bundled normalized tables, cohort
+  assembly, VS-mode estimation, SOC-only projection, and file export.
+- `Public oncology data workflow` shows the same analysis pattern on the
+  real patient-level
+  [`survival::veteran`](https://rdrr.io/pkg/survival/man/veteran.html)
+  dataset.
 
 ## Output contract
 
