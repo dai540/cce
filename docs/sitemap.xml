@@ -1,0 +1,26 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/demo-data-workflow.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/public-oncology-data.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/as_curves_df.html</loc></url>
+<url><loc>/reference/as_diagnostics_df.html</loc></url>
+<url><loc>/reference/as_effects_df.html</loc></url>
+<url><loc>/reference/build_analysis_dataset.html</loc></url>
+<url><loc>/reference/cce-package.html</loc></url>
+<url><loc>/reference/cce_demo_data.html</loc></url>
+<url><loc>/reference/cce_spec.html</loc></url>
+<url><loc>/reference/estimate_pos_proxy.html</loc></url>
+<url><loc>/reference/fit_cce_vs.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/project_soc_only.html</loc></url>
+<url><loc>/reference/read_cce_spec.html</loc></url>
+<url><loc>/reference/required_hr.html</loc></url>
+<url><loc>/reference/write_cce_results.html</loc></url>
+<url><loc>/reference/write_cce_spec.html</loc></url>
+</urlset>
+

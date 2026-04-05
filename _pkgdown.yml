@@ -1,0 +1,63 @@
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+development:
+  mode: release
+
+url: https://dai540.github.io/cce
+
+home:
+  title: cce
+  description: Counterfactual comparator engine for reproducible survival benchmarking.
+
+repo:
+  url:
+    home: https://github.com/dai540/cce
+    source: https://github.com/dai540/cce/blob/main
+    issue: https://github.com/dai540/cce/issues/
+    user: https://github.com/
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search]
+  components:
+    intro:
+      text: Get Started
+      href: index.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    github:
+      icon: fa-github
+      href: https://github.com/dai540/cce
+      aria-label: GitHub repository
+
+reference:
+  - title: Specifications and data assembly
+    contents:
+      - cce_spec
+      - read_cce_spec
+      - write_cce_spec
+      - build_analysis_dataset
+      - cce_demo_data
+  - title: Estimation
+    contents:
+      - fit_cce_vs
+      - project_soc_only
+      - required_hr
+      - estimate_pos_proxy
+  - title: Outputs
+    contents:
+      - as_curves_df
+      - as_effects_df
+      - as_diagnostics_df
+      - write_cce_results
+
+articles:
+  - title: Tutorials
+    navbar: Tutorials
+    contents:
+      - demo-data-workflow
+      - public-oncology-data
