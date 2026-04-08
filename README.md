@@ -1,46 +1,68 @@
 # cce
 
-`cce` is an R package for counterfactual comparator work in survival settings.
-It focuses on a practical workflow:
+[![pkgdown](https://img.shields.io/badge/docs-pkgdown-315c86)](https://dai540.github.io/cce/)
+[![R-tests](https://github.com/dai540/cce/actions/workflows/R-tests.yaml/badge.svg)](https://github.com/dai540/cce/actions/workflows/R-tests.yaml)
+[![GitHub release](https://img.shields.io/github/v/release/dai540/cce)](https://github.com/dai540/cce/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-- validate normalized source tables
-- build an analysis-ready cohort
-- estimate adjusted VS-mode survival curves with g-formula, `iptw_km`, and `iptw_cox`
-- project SOC-only curves under hazard-ratio scenarios
-- export machine-readable results for downstream reporting
+`cce` is a source-first R package for counterfactual comparator work in
+survival settings. It focuses on five jobs:
 
-The package is designed for reproducibility-first development. It keeps inputs
-explicit, returns tidy outputs, and ships two end-to-end tutorials:
+- validating normalized source tables
+- building an analysis-ready cohort
+- estimating VS-mode curves with `gformula`, `iptw_km`, and `iptw_cox`
+- projecting SOC-only curves under hazard-ratio scenarios
+- exporting machine-readable outputs for downstream review
 
-- a synthetic demo-data workflow
-- a public oncology dataset workflow using `survival::veteran`
+The input contract is intentionally strict:
 
-Documentation site: <https://dai540.github.io/cce/>
+- `patient_baseline`: one row per patient with `index_date` and covariates
+- `treatment_episodes`: one index-treatment row per patient
+- `outcomes`: one endpoint row per patient for the selected endpoint
+- `biomarkers`: optional baseline subgroup values
 
-The pkgdown site publishes both tutorials as HTML articles and mirrors the
-function reference:
+For repeatable analysis, `cce` ships a fixed `cce_spec()` contract, YAML
+round-tripping, dataset validation, profiling, and bundled demo tables
+through `cce_demo_data()`.
 
-- Demo tutorial: <https://dai540.github.io/cce/articles/demo-data-workflow.html>
-- Real-data tutorial: <https://dai540.github.io/cce/articles/public-oncology-data.html>
+The package validates inputs, records exclusions, estimates survival
+effects, stores analysis metadata in `results.json`, and ships both demo
+and real-data tutorials through pkgdown.
 
 ## Installation
 
-From source:
+`cce` is currently intended to be used from a source checkout. The
+repository intentionally omits a maintainer email in `DESCRIPTION`, so it
+is not set up for standard `install_github()` or CRAN-style installation.
 
-```sh
-R CMD INSTALL cce
-```
-
-## Quick start
+Clone the repository and load it in place with `pkgload`:
 
 ```r
-library(cce)
+install.packages(c("pkgload", "testthat", "pkgdown", "rmarkdown"))
+pkgload::load_all("path/to/cce", export_all = FALSE)
+```
 
-demo <- cce_demo_data(n = 220, seed = 7)
-analysis <- demo$analysis_data
+To build the documentation locally:
 
-vs_fit <- fit_cce_vs(
-  data = analysis,
+```r
+pkgdown::build_site("path/to/cce", install = FALSE, new_process = FALSE)
+```
+
+Then load the package:
+
+```r
+pkgload::load_all("path/to/cce", export_all = FALSE)
+```
+
+## Minimal Example
+
+`fit_cce_vs()` is the main comparative workflow:
+
+```r
+demo <- cce::cce_demo_data(n = 220, seed = 7)
+
+vs_fit <- cce::fit_cce_vs(
+  data = demo$analysis_data,
   arm = "arm",
   time = "time",
   event = "event",
@@ -52,10 +74,14 @@ vs_fit <- fit_cce_vs(
   seed = 11
 )
 
-head(as_effects_df(vs_fit))
+head(cce::as_effects_df(vs_fit))
+```
 
-soc_fit <- project_soc_only(
-  data = analysis,
+For SOC-only planning:
+
+```r
+soc_fit <- cce::project_soc_only(
+  data = demo$analysis_data,
   arm = "arm",
   soc_level = "SOC",
   time = "time",
@@ -70,34 +96,51 @@ soc_fit <- project_soc_only(
   seed = 99
 )
 
-head(as_effects_df(soc_fit))
+head(cce::as_effects_df(soc_fit))
 ```
 
-## Main functions
+## Core Functions
 
-- `cce_spec()` creates a reusable schema contract
-- `validate_cce_tables()` preflights normalized source tables and returns issues
-- `build_analysis_dataset()` turns normalized tables into an analysis-ready set
-- `profile_cce_dataset()` summarizes sample size, events, subgroup counts, and missingness
-- `fit_cce_vs()` estimates g-formula, `iptw_km`, and `iptw_cox` comparator curves
-- `project_soc_only()` runs assumption-based PH projections
-- `write_cce_results()` writes `results.json`, `curves.csv`, `effects.csv`,
-  and `diagnostics.csv`
+- `cce_spec()`
+- `write_cce_spec()`
+- `read_cce_spec()`
+- `validate_cce_tables()`
+- `build_analysis_dataset()`
+- `profile_cce_dataset()`
+- `cce_demo_data()`
+- `fit_cce_vs()`
+- `project_soc_only()`
+- `required_hr()`
+- `estimate_pos_proxy()`
+- `write_cce_results()`
 
-## Tutorials
+## Main Outputs
 
-- `Demo-data workflow` walks through bundled normalized tables, cohort
-  assembly, VS-mode estimation, SOC-only projection, and file export.
-- `Public oncology data workflow` shows the same analysis pattern on the
-  real patient-level `survival::veteran` dataset.
+Stable outputs include:
 
-## Output contract
+- `results.json`
+- `curves.csv`
+- `effects.csv`
+- `diagnostics.csv`
 
-Both VS and SOC-only results include:
+The JSON payload includes:
 
-- tidy curve data
-- effect summaries with RMST and landmark contrasts
-- diagnostics
-- machine-readable run metadata including covariates, thresholds, spec, exclusions, and dataset profile
+- estimators and column mappings
+- covariates and thresholds
+- subgroup levels and scenario settings
+- source spec, exclusions, validation report, and dataset profile
 
-SOC-only outputs are always labeled `Projection (assumption-based)`.
+## Documentation
+
+Website: <https://dai540.github.io/cce/>
+
+Articles:
+
+- Demo workflow: <https://dai540.github.io/cce/articles/demo-data-workflow.html>
+- Real-data workflow: <https://dai540.github.io/cce/articles/public-oncology-data.html>
+
+## Citation
+
+```r
+citation("cce")
+```

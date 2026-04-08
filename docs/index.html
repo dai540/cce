@@ -57,46 +57,53 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="cce">cce<a class="anchor" aria-label="anchor" href="#cce"></a>
 </h1></div>
-<p><code>cce</code> is an R package for counterfactual comparator work in survival settings. It focuses on a practical workflow:</p>
+<p><a href="https://dai540.github.io/cce/"><img src="https://img.shields.io/badge/docs-pkgdown-315c86" alt="pkgdown"></a> <a href="https://github.com/dai540/cce/actions/workflows/R-tests.yaml" class="external-link"><img src="https://github.com/dai540/cce/actions/workflows/R-tests.yaml/badge.svg" alt="R-tests"></a> <a href="https://github.com/dai540/cce/releases" class="external-link"><img src="https://img.shields.io/github/v/release/dai540/cce" alt="GitHub release"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a></p>
+<p><code>cce</code> is a source-first R package for counterfactual comparator work in survival settings. It focuses on five jobs:</p>
 <ul>
-<li>validate normalized source tables</li>
-<li>build an analysis-ready cohort</li>
-<li>estimate adjusted VS-mode survival curves with g-formula, <code>iptw_km</code>, and <code>iptw_cox</code>
+<li>validating normalized source tables</li>
+<li>building an analysis-ready cohort</li>
+<li>estimating VS-mode curves with <code>gformula</code>, <code>iptw_km</code>, and <code>iptw_cox</code>
 </li>
-<li>project SOC-only curves under hazard-ratio scenarios</li>
-<li>export machine-readable results for downstream reporting</li>
+<li>projecting SOC-only curves under hazard-ratio scenarios</li>
+<li>exporting machine-readable outputs for downstream review</li>
 </ul>
-<p>The package is designed for reproducibility-first development. It keeps inputs explicit, returns tidy outputs, and ships two end-to-end tutorials:</p>
+<p>The input contract is intentionally strict:</p>
 <ul>
-<li>a synthetic demo-data workflow</li>
-<li>a public oncology dataset workflow using <code><a href="https://rdrr.io/pkg/survival/man/veteran.html" class="external-link">survival::veteran</a></code>
-</li>
+<li>
+<code>patient_baseline</code>: one row per patient with <code>index_date</code> and covariates</li>
+<li>
+<code>treatment_episodes</code>: one index-treatment row per patient</li>
+<li>
+<code>outcomes</code>: one endpoint row per patient for the selected endpoint</li>
+<li>
+<code>biomarkers</code>: optional baseline subgroup values</li>
 </ul>
-<p>Documentation site: <a href="https://dai540.github.io/cce/" class="uri">https://dai540.github.io/cce/</a></p>
-<p>The pkgdown site publishes both tutorials as HTML articles and mirrors the function reference:</p>
-<ul>
-<li>Demo tutorial: <a href="https://dai540.github.io/cce/articles/demo-data-workflow.html" class="uri">https://dai540.github.io/cce/articles/demo-data-workflow.html</a>
-</li>
-<li>Real-data tutorial: <a href="https://dai540.github.io/cce/articles/public-oncology-data.html" class="uri">https://dai540.github.io/cce/articles/public-oncology-data.html</a>
-</li>
-</ul>
+<p>For repeatable analysis, <code>cce</code> ships a fixed <code><a href="reference/cce_spec.html">cce_spec()</a></code> contract, YAML round-tripping, dataset validation, profiling, and bundled demo tables through <code><a href="reference/cce_demo_data.html">cce_demo_data()</a></code>.</p>
+<p>The package validates inputs, records exclusions, estimates survival effects, stores analysis metadata in <code>results.json</code>, and ships both demo and real-data tutorials through pkgdown.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>From source:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL cce</span></code></pre></div>
+<p><code>cce</code> is currently intended to be used from a source checkout. The repository intentionally omits a maintainer email in <code>DESCRIPTION</code>, so it is not set up for standard <code>install_github()</code> or CRAN-style installation.</p>
+<p>Clone the repository and load it in place with <code>pkgload</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pkgload"</span>, <span class="st">"testthat"</span>, <span class="st">"pkgdown"</span>, <span class="st">"rmarkdown"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="st">"path/to/cce"</span>, export_all <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>To build the documentation locally:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span><span class="st">"path/to/cce"</span>, install <span class="op">=</span> <span class="cn">FALSE</span>, new_process <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Then load the package:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="st">"path/to/cce"</span>, export_all <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h2 id="minimal-example">Minimal Example<a class="anchor" aria-label="anchor" href="#minimal-example"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dai540/cce" class="external-link">cce</a></span><span class="op">)</span></span>
+<p><code><a href="reference/fit_cce_vs.html">fit_cce_vs()</a></code> is the main comparative workflow:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">demo</span> <span class="op">&lt;-</span> <span class="fu">cce</span><span class="fu">::</span><span class="fu"><a href="reference/cce_demo_data.html">cce_demo_data</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">220</span>, seed <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cce_demo_data.html">cce_demo_data</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">220</span>, seed <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
-<span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">demo</span><span class="op">$</span><span class="va">analysis_data</span></span>
-<span></span>
-<span><span class="va">vs_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit_cce_vs.html">fit_cce_vs</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">analysis</span>,</span>
+<span><span class="va">vs_fit</span> <span class="op">&lt;-</span> <span class="fu">cce</span><span class="fu">::</span><span class="fu"><a href="reference/fit_cce_vs.html">fit_cce_vs</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">demo</span><span class="op">$</span><span class="va">analysis_data</span>,</span>
 <span>  arm <span class="op">=</span> <span class="st">"arm"</span>,</span>
 <span>  time <span class="op">=</span> <span class="st">"time"</span>,</span>
 <span>  event <span class="op">=</span> <span class="st">"event"</span>,</span>
@@ -108,10 +115,11 @@
 <span>  seed <span class="op">=</span> <span class="fl">11</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="reference/as_effects_df.html">as_effects_df</a></span><span class="op">(</span><span class="va">vs_fit</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">soc_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/project_soc_only.html">project_soc_only</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">analysis</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">cce</span><span class="fu">::</span><span class="fu"><a href="reference/as_effects_df.html">as_effects_df</a></span><span class="op">(</span><span class="va">vs_fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>For SOC-only planning:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">soc_fit</span> <span class="op">&lt;-</span> <span class="fu">cce</span><span class="fu">::</span><span class="fu"><a href="reference/project_soc_only.html">project_soc_only</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">demo</span><span class="op">$</span><span class="va">analysis_data</span>,</span>
 <span>  arm <span class="op">=</span> <span class="st">"arm"</span>,</span>
 <span>  soc_level <span class="op">=</span> <span class="st">"SOC"</span>,</span>
 <span>  time <span class="op">=</span> <span class="st">"time"</span>,</span>
@@ -126,50 +134,61 @@
 <span>  seed <span class="op">=</span> <span class="fl">99</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="reference/as_effects_df.html">as_effects_df</a></span><span class="op">(</span><span class="va">soc_fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">cce</span><span class="fu">::</span><span class="fu"><a href="reference/as_effects_df.html">as_effects_df</a></span><span class="op">(</span><span class="va">soc_fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="main-functions">Main functions<a class="anchor" aria-label="anchor" href="#main-functions"></a>
+<h2 id="core-functions">Core Functions<a class="anchor" aria-label="anchor" href="#core-functions"></a>
 </h2>
 <ul>
-<li>
-<code><a href="reference/cce_spec.html">cce_spec()</a></code> creates a reusable schema contract</li>
-<li>
-<code><a href="reference/validate_cce_tables.html">validate_cce_tables()</a></code> preflights normalized source tables and returns issues</li>
-<li>
-<code><a href="reference/build_analysis_dataset.html">build_analysis_dataset()</a></code> turns normalized tables into an analysis-ready set</li>
-<li>
-<code><a href="reference/profile_cce_dataset.html">profile_cce_dataset()</a></code> summarizes sample size, events, subgroup counts, and missingness</li>
-<li>
-<code><a href="reference/fit_cce_vs.html">fit_cce_vs()</a></code> estimates g-formula, <code>iptw_km</code>, and <code>iptw_cox</code> comparator curves</li>
-<li>
-<code><a href="reference/project_soc_only.html">project_soc_only()</a></code> runs assumption-based PH projections</li>
-<li>
-<code><a href="reference/write_cce_results.html">write_cce_results()</a></code> writes <code>results.json</code>, <code>curves.csv</code>, <code>effects.csv</code>, and <code>diagnostics.csv</code>
+<li><code><a href="reference/cce_spec.html">cce_spec()</a></code></li>
+<li><code><a href="reference/write_cce_spec.html">write_cce_spec()</a></code></li>
+<li><code><a href="reference/read_cce_spec.html">read_cce_spec()</a></code></li>
+<li><code><a href="reference/validate_cce_tables.html">validate_cce_tables()</a></code></li>
+<li><code><a href="reference/build_analysis_dataset.html">build_analysis_dataset()</a></code></li>
+<li><code><a href="reference/profile_cce_dataset.html">profile_cce_dataset()</a></code></li>
+<li><code><a href="reference/cce_demo_data.html">cce_demo_data()</a></code></li>
+<li><code><a href="reference/fit_cce_vs.html">fit_cce_vs()</a></code></li>
+<li><code><a href="reference/project_soc_only.html">project_soc_only()</a></code></li>
+<li><code><a href="reference/required_hr.html">required_hr()</a></code></li>
+<li><code><a href="reference/estimate_pos_proxy.html">estimate_pos_proxy()</a></code></li>
+<li><code><a href="reference/write_cce_results.html">write_cce_results()</a></code></li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="main-outputs">Main Outputs<a class="anchor" aria-label="anchor" href="#main-outputs"></a>
+</h2>
+<p>Stable outputs include:</p>
+<ul>
+<li><code>results.json</code></li>
+<li><code>curves.csv</code></li>
+<li><code>effects.csv</code></li>
+<li><code>diagnostics.csv</code></li>
+</ul>
+<p>The JSON payload includes:</p>
+<ul>
+<li>estimators and column mappings</li>
+<li>covariates and thresholds</li>
+<li>subgroup levels and scenario settings</li>
+<li>source spec, exclusions, validation report, and dataset profile</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>Website: <a href="https://dai540.github.io/cce/" class="uri">https://dai540.github.io/cce/</a></p>
+<p>Articles:</p>
+<ul>
+<li>Demo workflow: <a href="https://dai540.github.io/cce/articles/demo-data-workflow.html" class="uri">https://dai540.github.io/cce/articles/demo-data-workflow.html</a>
+</li>
+<li>Real-data workflow: <a href="https://dai540.github.io/cce/articles/public-oncology-data.html" class="uri">https://dai540.github.io/cce/articles/public-oncology-data.html</a>
 </li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="tutorials">Tutorials<a class="anchor" aria-label="anchor" href="#tutorials"></a>
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<ul>
-<li>
-<code>Demo-data workflow</code> walks through bundled normalized tables, cohort assembly, VS-mode estimation, SOC-only projection, and file export.</li>
-<li>
-<code>Public oncology data workflow</code> shows the same analysis pattern on the real patient-level <code><a href="https://rdrr.io/pkg/survival/man/veteran.html" class="external-link">survival::veteran</a></code> dataset.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="output-contract">Output contract<a class="anchor" aria-label="anchor" href="#output-contract"></a>
-</h2>
-<p>Both VS and SOC-only results include:</p>
-<ul>
-<li>tidy curve data</li>
-<li>effect summaries with RMST and landmark contrasts</li>
-<li>diagnostics</li>
-<li>machine-readable run metadata including covariates, thresholds, spec, exclusions, and dataset profile</li>
-</ul>
-<p>SOC-only outputs are always labeled <code>Projection (assumption-based)</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"cce"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
