@@ -6,3 +6,5 @@ src-i386/
 src-x64/
 /*.tar.gz
 /cce.Rcheck/
+/docs/
+/pkgdown/

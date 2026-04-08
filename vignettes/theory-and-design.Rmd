@@ -1,0 +1,176 @@
+---
+title: "Theory and design"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Theory and design}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  if (file.exists("DESCRIPTION")) {
+    pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else if (file.exists("../DESCRIPTION")) {
+    pkgload::load_all("..", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else {
+    library(cce)
+  }
+} else {
+  library(cce)
+}
+```
+
+## Package scope
+
+`cce` is designed for a narrow class of survival analyses where the practical
+goal is to put VS-mode estimation and SOC-only scenario planning on one stable
+output contract.
+
+The package is built around three ideas:
+
+- the source tables should be normalized and validated before modeling
+- VS and SOC-only analyses should emit the same machine-readable outputs
+- diagnostics and metadata should be first-class outputs, not afterthoughts
+
+## Input contract
+
+The input contract is explicit through `cce_spec()` and the four normalized
+tables:
+
+- `patient_baseline`
+- `treatment_episodes`
+- `outcomes`
+- `biomarkers`
+
+This is not just a convenience wrapper. The contract is what makes exclusion
+rules, arm mapping, subgroup derivation, and output reproducibility stable
+across repeated analyses.
+
+```{r}
+demo <- cce_demo_data(n = 80, seed = 7)
+str(demo$spec, max.level = 1)
+```
+
+## VS workflow
+
+The VS workflow is implemented in `fit_cce_vs()`. It returns standardized
+survival outputs on a common schema for:
+
+- `gformula`
+- `iptw_km`
+- `iptw_cox`
+
+The practical target is not a single scalar estimate. The package keeps the
+curve-level output, landmark contrasts, RMST summaries, and diagnostics aligned
+on the same result object.
+
+```{r}
+vs_fit <- fit_cce_vs(
+  data = demo$analysis_data,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  covariates = c("age", "sex", "stage_or_risk", "ps"),
+  subgroup = "subgroup",
+  tau = 365,
+  landmark_times = c(180, 365),
+  bootstrap = 5,
+  seed = 21
+)
+
+head(as_effects_df(vs_fit))
+```
+
+### Why two IPTW labels exist
+
+`cce` keeps two IPTW-related labels on purpose:
+
+- `iptw_km`: weighted Kaplan-Meier style marginal curves
+- `iptw_cox`: weighted Cox-based curves
+
+This avoids a common ambiguity where an output labeled only as `IPTW` can refer
+either to weighted marginal survival or to a weighted model-based estimator.
+
+## SOC-only workflow
+
+The SOC-only workflow is implemented in `project_soc_only()`. It starts from
+the observed SOC survival pattern and projects comparator curves under
+proportional-hazards assumptions.
+
+```{r}
+soc_fit <- project_soc_only(
+  data = demo$analysis_data,
+  arm = "arm",
+  soc_level = "SOC",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup",
+  tau = 365,
+  hr_scenarios = c(0.70, 0.85, 1.00),
+  target_delta_rmst = 20,
+  prior_mean_log_hr = log(0.85),
+  prior_sd_log_hr = 0.20,
+  bootstrap = 5,
+  seed = 55
+)
+
+head(as_effects_df(soc_fit))
+```
+
+SOC-only results are projections. The package makes that explicit in the result
+label and in the exported metadata.
+
+## Diagnostics and fail rules
+
+The package treats diagnostics as part of the primary product. `fit_cce_vs()`
+returns overlap and weighting summaries together with fail flags and warning
+flags.
+
+```{r}
+head(as_diagnostics_df(vs_fit))
+```
+
+The operational rule is simple:
+
+- if diagnostics are acceptable, results are returned as standard outputs
+- if diagnostics fail, the object is labeled for reference-only interpretation
+
+This is intended to prevent silent over-interpretation of unstable weighted
+analyses.
+
+## Output contract
+
+Both workflows are designed to feed the same export layer:
+
+- `curves.csv`
+- `effects.csv`
+- `diagnostics.csv`
+- `results.json`
+
+```{r}
+temp <- tempfile(pattern = "cce-design-")
+write_cce_results(vs_fit, temp)
+list.files(temp)
+```
+
+`results.json` stores the method labels, covariates, thresholds, subgroup
+settings, spec payload, exclusion summary, validation report, and dataset
+profile. This is the package's core reproducibility contract.
+
+## Limits
+
+`cce` does not currently try to solve the full survival-causal toolbox. In
+particular, it does not yet implement:
+
+- dynamic treatment regimes
+- time-varying treatment assignment
+- multi-arm comparator analysis on one output contract
+- full production missing-data workflows
+
+Those limits are deliberate. The package is trying to keep the contract for
+counterfactual comparator work clear and stable before expanding scope.

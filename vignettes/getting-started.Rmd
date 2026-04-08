@@ -1,0 +1,176 @@
+---
+title: "Getting started"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  if (file.exists("DESCRIPTION")) {
+    pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else if (file.exists("../DESCRIPTION")) {
+    pkgload::load_all("..", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else {
+    library(cce)
+  }
+} else {
+  library(cce)
+}
+```
+
+## Overview
+
+`cce` has two main workflows:
+
+- `fit_cce_vs()` for A versus SOC comparisons
+- `project_soc_only()` for assumption-based SOC-only projections
+
+Both workflows are built around the same output contract:
+
+- survival curves
+- effect tables
+- diagnostics tables
+- `results.json` metadata for audit and reporting
+
+## Generate demo data
+
+```{r}
+demo <- cce_demo_data(n = 220, seed = 42)
+names(demo)
+```
+
+The demo helper returns normalized source tables and a ready-made analysis
+dataset.
+
+```{r}
+head(demo$analysis_data)
+```
+
+## Define and round-trip the analysis contract
+
+```{r}
+spec_path <- tempfile(fileext = ".yml")
+write_cce_spec(demo$spec, spec_path)
+spec <- read_cce_spec(spec_path)
+spec$covariates
+```
+
+## Validate and assemble the analysis dataset
+
+```{r}
+validate_cce_tables(
+  patient_baseline = demo$patient_baseline,
+  treatment_episodes = demo$treatment_episodes,
+  outcomes = demo$outcomes,
+  biomarkers = demo$biomarkers,
+  spec = spec
+)
+```
+
+```{r}
+analysis <- build_analysis_dataset(
+  patient_baseline = demo$patient_baseline,
+  treatment_episodes = demo$treatment_episodes,
+  outcomes = demo$outcomes,
+  biomarkers = demo$biomarkers,
+  spec = spec
+)
+```
+
+```{r}
+profile_cce_dataset(
+  data = analysis,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup"
+)
+```
+
+## Fit a VS comparison
+
+```{r}
+vs_fit <- fit_cce_vs(
+  data = analysis,
+  arm = "arm",
+  time = "time",
+  event = "event",
+  covariates = c("age", "sex", "stage_or_risk", "ps"),
+  subgroup = "subgroup",
+  tau = 365,
+  landmark_times = c(180, 365),
+  bootstrap = 10,
+  seed = 100
+)
+
+summary(vs_fit)
+```
+
+```{r}
+head(as_effects_df(vs_fit))
+```
+
+The VS output includes results from:
+
+- `gformula`
+- `iptw_km`
+- `iptw_cox`
+
+```{r}
+head(as_diagnostics_df(vs_fit))
+```
+
+## Fit an SOC-only projection
+
+```{r}
+soc_fit <- project_soc_only(
+  data = analysis,
+  arm = "arm",
+  soc_level = "SOC",
+  time = "time",
+  event = "event",
+  subgroup = "subgroup",
+  tau = 365,
+  hr_scenarios = c(0.65, 0.80, 1.00),
+  target_delta_rmst = 30,
+  prior_mean_log_hr = log(0.8),
+  prior_sd_log_hr = 0.25,
+  bootstrap = 10,
+  seed = 200
+)
+
+summary(soc_fit)
+```
+
+```{r}
+head(as_effects_df(soc_fit))
+```
+
+SOC-only results are always labeled as `Projection (assumption-based)`.
+
+## Export machine-readable outputs
+
+```{r}
+out_dir <- tempfile(pattern = "cce-start-")
+write_cce_results(vs_fit, out_dir)
+list.files(out_dir)
+```
+
+The standard export set is:
+
+- `results.json`
+- `curves.csv`
+- `effects.csv`
+- `diagnostics.csv`
+
+## Next steps
+
+For a full synthetic walkthrough, see the bundled demo-data case study. For a
+real public patient-level example, see the `survival::veteran` case study.

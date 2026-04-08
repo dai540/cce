@@ -9,7 +9,9 @@ url: https://dai540.github.io/cce
 
 home:
   title: cce
-  description: Counterfactual comparator engine for reproducible survival benchmarking.
+  description: Counterfactual comparator workflows for survival benchmarking, VS analysis, and SOC-only scenario planning.
+  sidebar:
+    structure: []
 
 repo:
   url:
@@ -21,7 +23,7 @@ repo:
 navbar:
   structure:
     left: [intro, reference, articles]
-    right: [search]
+    right: [github, search]
   components:
     intro:
       text: Get Started
@@ -35,31 +37,36 @@ navbar:
       aria-label: GitHub repository
 
 reference:
-  - title: Specifications and data assembly
-    contents:
-      - cce_spec
-      - read_cce_spec
-      - write_cce_spec
-      - validate_cce_tables
-      - profile_cce_dataset
-      - build_analysis_dataset
-      - cce_demo_data
-  - title: Estimation
+  - title: Main workflows
     contents:
       - fit_cce_vs
       - project_soc_only
       - required_hr
       - estimate_pos_proxy
-  - title: Outputs
+      - write_cce_results
+  - title: Input contract and assembly
+    contents:
+      - cce_spec
+      - read_cce_spec
+      - write_cce_spec
+      - validate_cce_tables
+      - build_analysis_dataset
+      - profile_cce_dataset
+      - cce_demo_data
+  - title: Output helpers
     contents:
       - as_curves_df
       - as_effects_df
       - as_diagnostics_df
-      - write_cce_results
 
 articles:
-  - title: Tutorials
-    navbar: Tutorials
+  - title: Core tutorials
+    navbar: Core
+    contents:
+      - getting-started
+      - theory-and-design
+  - title: Case studies
+    navbar: Case Studies
     contents:
       - demo-data-workflow
       - public-oncology-data
