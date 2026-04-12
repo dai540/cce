@@ -1,0 +1,70 @@
+---
+title: "Tutorial: public survival data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tutorial: public survival data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  if (file.exists("DESCRIPTION")) {
+    pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else if (file.exists("../DESCRIPTION")) {
+    pkgload::load_all("..", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  } else {
+    library(cce)
+  }
+} else {
+  library(cce)
+}
+library(survival)
+```
+
+## Use `survival::veteran`
+
+`survival::veteran` is a public dataset already distributed with the
+`survival` package, so this tutorial needs no external download.
+
+```{r}
+data(veteran, package = "survival")
+
+veteran2 <- transform(
+  veteran,
+  arm = ifelse(trt == 1, "SOC", "A"),
+  time = time,
+  event = status,
+  subgroup = as.character(celltype)
+)
+
+head(veteran2[, c("arm", "time", "event", "subgroup")])
+```
+
+## Run the observed comparison
+
+```{r}
+vs_fit <- fit_cce_vs(
+  data = veteran2,
+  subgroup = "subgroup",
+  tau = 180,
+  times = c(90, 180)
+)
+
+head(as_effects_df(vs_fit))
+```
+
+## Run the SOC-only projection
+
+```{r}
+soc_fit <- project_soc_only(
+  data = veteran2,
+  subgroup = "subgroup",
+  tau = 180,
+  hr_scenarios = c(0.75, 0.90, 1.00),
+  target_delta_rmst = 10
+)
+
+head(as_effects_df(soc_fit))
+```

@@ -2,205 +2,199 @@
 
 [![pkgdown](https://img.shields.io/badge/docs-pkgdown-315c86)](https://dai540.github.io/cce/)
 [![R-tests](https://github.com/dai540/cce/actions/workflows/R-tests.yaml/badge.svg)](https://github.com/dai540/cce/actions/workflows/R-tests.yaml)
-[![GitHub release](https://img.shields.io/github/v/release/dai540/cce)](https://github.com/dai540/cce/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-`cce` is an R package for counterfactual comparator analysis in survival
-settings. It is designed around two practical workflows:
+`cce` is a small R package for counterfactual comparator work in survival
+settings. The package is intentionally narrow. It does not try to be a general
+causal inference framework. Instead, it provides a minimal and consistent set of
+workflows for two concrete jobs:
 
-<https://dai540.github.io/cce/>
+- an observed two-arm comparison workflow for `A` versus `SOC`
+- an SOC-only projection workflow for assumption-based scenario planning
 
-- `fit_cce_vs()` for treatment A versus SOC comparisons on a common output contract
-- `project_soc_only()` for assumption-based SOC-only scenario planning on the same output contract
+The package is built to stay small:
 
-The package is intentionally narrow. It does not try to be a full causal
-inference framework. Instead, it standardizes the data contract, diagnostic
-tables, survival curves, effect tables, and export files needed for
-counterfactual comparator work in oncology-style survival analyses.
+- no bundled large datasets
+- no generated website files committed to `main`
+- no heavy downstream dependencies beyond `survival` and `jsonlite`
+- no large example outputs or cached artifacts
 
-It is designed for analysts working on:
+## Scope
 
-- external comparator work
-- SOC benchmarking
-- subgroup survival comparisons
-- biomarker-oriented scenario planning
-- machine-readable survival reporting
+`cce` focuses on a single output contract for simple survival analysis. Both
+workflows return:
 
-The input contract is intentionally strict:
+- survival curves
+- effect tables
+- diagnostics tables
+- a metadata payload that can be exported as JSON
 
-- `patient_baseline`: one row per patient with `index_date` and baseline covariates
-- `treatment_episodes`: one index-treatment row per patient after arm mapping
-- `outcomes`: one endpoint row per patient for the selected time-to-event endpoint
-- `biomarkers`: optional baseline subgroup values
+This contract is designed for lightweight benchmarking, early planning, and
+tutorial-friendly analyses where the analyst needs a consistent set of outputs
+without bringing in a large framework.
 
-For repeatable analysis, `cce` ships a fixed `cce_spec()` contract, YAML
-round-tripping, validation helpers, dataset profiling, and bundled demo tables
-through `cce_demo_data()`.
+## Data model
 
-## Installation
+The package expects a patient-level analysis table. The minimal columns are:
 
-`cce` is currently intended to be used from a source checkout. The repository
-intentionally omits a maintainer email in `DESCRIPTION`, so it is not set up for
-standard `install_github()` or CRAN-style installation.
+- `arm`: treatment label
+- `time`: follow-up time
+- `event`: event indicator
 
-Clone the repository and load it in place with `pkgload`:
+Optional columns can be added without changing the workflow:
+
+- `subgroup`: subgroup label for stratified summaries
+- baseline columns such as `age` or `ps`
+
+For tutorials, the package supplies:
+
+- `cce_demo_data()` for synthetic demo data
+- a public-data tutorial based on `survival::veteran`, which ships inside
+  `survival` and does not require any external download
+
+## Main functions
+
+The package keeps the public API deliberately small:
+
+- `cce_demo_data()`: synthetic survival dataset for examples and tests
+- `fit_cce_vs()`: observed two-arm survival comparison
+- `project_soc_only()`: SOC-only proportional-hazards projection
+- `as_curves_df()`: extract the curves table
+- `as_effects_df()`: extract the effects table
+- `as_diagnostics_df()`: extract the diagnostics table
+- `write_cce_results()`: export results to CSV and JSON
+
+## Workflows
+
+### 1. VS workflow
+
+`fit_cce_vs()` is the smallest useful observed-comparison workflow in the
+package. It:
+
+- enforces a two-arm input
+- computes Kaplan-Meier style survival curves
+- reports survival differences at requested time points
+- reports restricted mean survival time differences at `tau`
+- returns compact diagnostics such as sample counts and event counts
+
+### 2. SOC-only workflow
+
+`project_soc_only()` starts from the observed `SOC` curve and projects new
+curves using a proportional-hazards assumption. It:
+
+- estimates an observed `SOC` survival curve
+- creates projected curves for user-supplied hazard-ratio scenarios
+- reports projected survival differences and projected RMST gains
+- can optionally back-solve a `required_hr` for a target RMST gain
+
+These outputs are explicitly labeled as projection-based and should not be read
+as causal estimates.
+
+## Output files
+
+`write_cce_results()` writes a minimal export set:
+
+- `curves.csv`
+- `effects.csv`
+- `diagnostics.csv`
+- `results.json`
+
+The export schema is intentionally simple and long-form, so it can be consumed
+by spreadsheets, reports, or small downstream scripts without extra adapters.
+
+## Installation and local use
+
+This repository is designed to be used from a source checkout.
 
 ```r
 install.packages(c("pkgload", "testthat", "pkgdown", "rmarkdown"))
 pkgload::load_all("path/to/cce", export_all = FALSE)
 ```
 
-To build the documentation locally:
+To run the tests locally:
+
+```r
+testthat::test_local("path/to/cce")
+```
+
+To build the documentation site locally:
 
 ```r
 pkgdown::build_site("path/to/cce", install = FALSE, new_process = FALSE)
 ```
 
-Then load the package:
+## Minimal example
 
 ```r
-pkgload::load_all("path/to/cce", export_all = FALSE)
-```
-
-## Core estimands
-
-### VS workflow
-
-`cce` estimates comparative survival summaries on a common output contract:
-
-- standardized survival curves
-- landmark survival differences
-- restricted mean survival time differences
-- diagnostic tables for weighting and overlap
-
-### SOC-only workflow
-
-`cce` projects scenario-based survival summaries from an SOC baseline:
-
-- observed SOC survival curves
-- projected comparator curves under hazard-ratio scenarios
-- required hazard ratios for target RMST gains
-- probability-of-success proxies under a log-HR prior
-
-SOC-only outputs are always labeled as projection-based, not causal estimates.
-
-## What cce does
-
-`cce` does four things.
-
-- Validates normalized source tables before analysis
-- Builds a single analysis-ready dataset with exclusions and profiling attached
-- Fits VS and SOC-only workflows on a shared output schema
-- Exports curves, effects, diagnostics, and metadata for downstream reporting
-
-In practice, the package is doing this:
-
-- `validate_cce_tables()` checks schema completeness and arm mapping
-- `build_analysis_dataset()` enforces index-treatment uniqueness and time-zero consistency
-- `fit_cce_vs()` returns `gformula`, `iptw_km`, and `iptw_cox` results on one contract
-- `project_soc_only()` returns projected curves, required HR values, and PoS proxies
-- `write_cce_results()` writes:
-  - `results.json`
-  - `curves.csv`
-  - `effects.csv`
-  - `diagnostics.csv`
-
-## Main functions
-
-- `cce_spec()`
-- `write_cce_spec()`
-- `read_cce_spec()`
-- `validate_cce_tables()`
-- `build_analysis_dataset()`
-- `profile_cce_dataset()`
-- `cce_demo_data()`
-- `fit_cce_vs()`
-- `project_soc_only()`
-- `required_hr()`
-- `estimate_pos_proxy()`
-- `write_cce_results()`
-
-## Example
-
-```r
-demo <- cce::cce_demo_data(n = 220, seed = 7)
+demo <- cce::cce_demo_data(n = 200, seed = 1)
 
 vs_fit <- cce::fit_cce_vs(
-  data = demo$analysis_data,
+  data = demo,
   arm = "arm",
   time = "time",
   event = "event",
-  covariates = c("age", "sex", "stage_or_risk", "ps"),
   subgroup = "subgroup",
   tau = 365,
-  landmark_times = c(180, 365),
-  bootstrap = 10,
-  seed = 11
+  times = c(180, 365)
 )
 
 head(cce::as_effects_df(vs_fit))
 
 soc_fit <- cce::project_soc_only(
-  data = demo$analysis_data,
+  data = demo,
   arm = "arm",
-  soc_level = "SOC",
   time = "time",
   event = "event",
   subgroup = "subgroup",
   tau = 365,
-  hr_scenarios = c(0.65, 0.80, 1.00),
-  target_delta_rmst = 30,
-  prior_mean_log_hr = log(0.8),
-  prior_sd_log_hr = 0.20,
-  bootstrap = 10,
-  seed = 99
+  hr_scenarios = c(0.7, 0.85, 1.0),
+  target_delta_rmst = 30
 )
 
 head(cce::as_effects_df(soc_fit))
 ```
 
-## Built-in tutorial datasets
+## Documentation structure
 
-The package currently ships two tutorial pathways.
+The pkgdown site is organized into four sections:
 
-### Demo workflow
+- `Getting Started`: a first-pass walkthrough of the package
+- `Guides`: design and output-contract guidance
+- `Tutorials`: end-to-end analyses on demo data and public data
+- `Reference`: function reference generated from the package docs
 
-- `cce_demo_data()`
-- fully synthetic normalized source tables plus an analysis dataset
+## Design rules
 
-### Public survival workflow
+This rebuild of `cce` follows a strict small-package rule set:
 
-- `survival::veteran`
-- compact public time-to-event data used as a real-data tutorial
+- only source files are tracked on `main`
+- large generated artifacts are excluded
+- tutorial data must either be synthetic or come from already-installed
+  packages
+- the package keeps its code and file structure intentionally shallow
 
-## Tutorials
+## Repository layout
 
-The tutorial site is organized around:
+The repository uses the smallest practical R package layout:
 
-- `Get Started`
-  - basic package workflow
-- `Design`
-  - target contract, estimands, diagnostics, and output rules
-- `Case Studies`
-  - bundled demo data
-  - public `survival::veteran` workflow
+- `R/`: package code
+- `man/`: reference files
+- `tests/`: testthat tests
+- `vignettes/`: pkgdown articles
+- `.github/workflows/`: test and pkgdown automation
 
-## What cce cannot do yet
+## Limitations
 
-- It does not implement time-varying treatment strategies
-- It does not implement dynamic treatment regimes
-- It does not implement multi-arm comparisons on one contract
-- It does not implement production-grade missing-data workflows beyond the current package interface
-- It does not replace a formal target trial protocol or SAP
+`cce` is intentionally limited. It does not implement:
 
-## Package layout
+- time-varying treatment strategies
+- high-dimensional covariate adjustment
+- automatic propensity-score modeling
+- external data downloads for tutorials
+- heavy reporting frameworks inside the package itself
 
-- `R/spec.R`: analysis specification contract and YAML helpers
-- `R/data-build.R`: validation, cohort assembly, exclusions, and profiling
-- `R/vs.R`: VS workflow estimators and diagnostics
-- `R/soc_projection.R`: SOC-only projection workflow
-- `R/outputs.R`: tidy exports and machine-readable output files
-- `vignettes/`: getting-started, design notes, and case-study tutorials
+Those omissions are deliberate. The package is kept small on disk and small in
+dependency surface.
 
 ## Documentation
 

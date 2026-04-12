@@ -28,11 +28,11 @@ jobs:
         with:
           dependencies: '"hard"'
           extra-packages: |
-            any::pkgload
-            any::pkgdown
-            any::roxygen2
             any::knitr
+            any::pkgdown
+            any::pkgload
             any::rmarkdown
+            any::roxygen2
 
       - name: Document
         run: roxygen2::roxygenise()
@@ -42,7 +42,7 @@ jobs:
         run: |
           unlink("docs", recursive = TRUE, force = TRUE)
           pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
-          pkgdown::build_site(pkg = ".", new_process = FALSE, install = FALSE)
+          pkgdown::build_site(".", install = FALSE, new_process = FALSE, preview = FALSE)
         shell: Rscript {0}
 
       - name: Deploy site

@@ -1,8 +1,8 @@
 ---
-title: "Getting started"
+title: "Tutorial: demo data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Getting started}
+  %\VignetteIndexEntry{Tutorial: demo data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -22,64 +22,45 @@ if (requireNamespace("pkgload", quietly = TRUE)) {
 }
 ```
 
-## Overview
-
-`cce` keeps one small output contract across two workflows:
-
-- observed two-arm comparison with `fit_cce_vs()`
-- SOC-only projection with `project_soc_only()`
+## Build a compact analysis
 
 ```{r}
-demo <- cce_demo_data(n = 200, seed = 1)
-head(demo)
+demo <- cce_demo_data(n = 240, seed = 10)
+table(demo$arm, demo$subgroup)
 ```
 
-## Observed comparison
+## Run the observed comparison
 
 ```{r}
 vs_fit <- fit_cce_vs(
   data = demo,
-  arm = "arm",
-  time = "time",
-  event = "event",
   subgroup = "subgroup",
   tau = 365,
   times = c(180, 365)
 )
 
-vs_fit
-head(as_effects_df(vs_fit))
+head(as_curves_df(vs_fit))
+head(as_diagnostics_df(vs_fit))
 ```
 
-## SOC-only projection
+## Run SOC-only planning
 
 ```{r}
 soc_fit <- project_soc_only(
   data = demo,
-  arm = "arm",
-  time = "time",
-  event = "event",
   subgroup = "subgroup",
   tau = 365,
-  hr_scenarios = c(0.7, 0.85, 1.0),
-  target_delta_rmst = 30
+  hr_scenarios = c(0.65, 0.80, 1.00),
+  target_delta_rmst = 25
 )
 
-soc_fit
 head(as_effects_df(soc_fit))
 ```
 
-## Export outputs
+## Write results
 
 ```{r}
-out_dir <- tempfile("cce-site-")
-write_cce_results(vs_fit, out_dir)
+out_dir <- tempfile("cce-demo-")
+write_cce_results(soc_fit, out_dir)
 list.files(out_dir)
 ```
-
-The package always writes the same four files:
-
-- `curves.csv`
-- `effects.csv`
-- `diagnostics.csv`
-- `results.json`

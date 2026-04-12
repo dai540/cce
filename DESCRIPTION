@@ -1,6 +1,6 @@
 Package: cce
 Type: Package
-Title: Counterfactual Comparator Engine for Survival Benchmarking
+Title: Counterfactual Comparator Workflows for Survival Data
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -10,27 +10,23 @@ Authors@R: c(
     )
   )
 Author: Dai [aut, cre]
-Description: Provides a reproducible toolkit for counterfactual comparator
-    analyses in oncology-style survival settings. The package validates
-    normalized trial-style inputs, builds analysis-ready cohorts, estimates
-    standardized survival curves with g-formula and inverse probability of
-    treatment weighting, projects assumption-based comparator curves for
-    SOC-only scenarios, exports machine-readable outputs, and ships
-    end-to-end tutorials for synthetic and public oncology data.
+Description: Minimal workflows for counterfactual comparator work in
+    survival settings. The package ships a compact demo dataset,
+    a simple observed two-arm comparison workflow, a simple SOC-only
+    projection workflow, and machine-readable output writers.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
     R (>= 4.2.0)
 Imports:
     jsonlite,
-    survival,
-    utils,
-    yaml
+    survival
 Suggests:
     knitr,
-    pkgload,
     pkgdown,
+    pkgload,
     rmarkdown,
+    roxygen2,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3

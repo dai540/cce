@@ -1,3 +1,5 @@
+url: https://dai540.github.io/cce/
+
 template:
   bootstrap: 5
   bootswatch: flatly
@@ -5,11 +7,9 @@ template:
 development:
   mode: release
 
-url: https://dai540.github.io/cce
-
 home:
   title: cce
-  description: Counterfactual comparator workflows for survival benchmarking, VS analysis, and SOC-only scenario planning.
+  description: Minimal counterfactual comparator workflows for survival data.
   sidebar:
     structure: []
 
@@ -22,12 +22,26 @@ repo:
 
 navbar:
   structure:
-    left: [intro, reference, articles]
+    left: [start, guides, tutorials, reference]
     right: [github, search]
   components:
-    intro:
-      text: Get Started
-      href: index.html
+    start:
+      text: Getting Started
+      menu:
+        - text: Getting started
+          href: articles/getting-started.html
+    guides:
+      text: Guides
+      menu:
+        - text: Design guide
+          href: articles/guide-design.html
+    tutorials:
+      text: Tutorials
+      menu:
+        - text: Demo-data tutorial
+          href: articles/tutorial-demo-data.html
+        - text: Public-data tutorial
+          href: articles/tutorial-public-data.html
     reference:
       text: Reference
       href: reference/index.html
@@ -36,37 +50,30 @@ navbar:
       href: https://github.com/dai540/cce
       aria-label: GitHub repository
 
-reference:
-  - title: Main workflows
+articles:
+  - title: Getting Started
+    navbar: Getting Started
     contents:
+      - getting-started
+  - title: Guides
+    navbar: Guides
+    contents:
+      - guide-design
+  - title: Tutorials
+    navbar: Tutorials
+    contents:
+      - tutorial-demo-data
+      - tutorial-public-data
+
+reference:
+  - title: Workflows
+    contents:
+      - cce_demo_data
       - fit_cce_vs
       - project_soc_only
-      - required_hr
-      - estimate_pos_proxy
       - write_cce_results
-  - title: Input contract and assembly
-    contents:
-      - cce_spec
-      - read_cce_spec
-      - write_cce_spec
-      - validate_cce_tables
-      - build_analysis_dataset
-      - profile_cce_dataset
-      - cce_demo_data
   - title: Output helpers
     contents:
       - as_curves_df
       - as_effects_df
       - as_diagnostics_df
-
-articles:
-  - title: Core tutorials
-    navbar: Core
-    contents:
-      - getting-started
-      - theory-and-design
-  - title: Case studies
-    navbar: Case Studies
-    contents:
-      - demo-data-workflow
-      - public-oncology-data
